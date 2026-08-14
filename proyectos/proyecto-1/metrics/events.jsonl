@@ -1,0 +1,70 @@
+{"ts":"2026-08-12T16:41:28.620Z","stage":"iniciativa","command":"/dsc-new","event":"STAGE_STARTED","artifact":null,"version":null,"actor":"ejemplo owner 1"}
+{"ts":"2026-08-12T21:56:15.298Z","stage":"iniciativa","command":"/dsc-refine","event":"ARTIFACT_CREATED","version":1,"actor":"ejemplo owner 1","rondas_de_preguntas":13,"categorias_faltantes":3,"categorias_ambiguas":4,"alertas_seguridad":0}
+{"ts":"2026-08-12T22:00:35.530Z","stage":"iniciativa","command":"/dsc-review","event":"FEEDBACK_ISSUED","version":1,"blocking":3,"total":5}
+{"ts":"2026-08-12T22:00:35.533Z","stage":"iniciativa","command":"/dsc-refine","event":"ARTIFACT_UPDATED","version":2,"actor":"ejemplo owner 1"}
+{"ts":"2026-08-12T23:00:15.770Z","stage":"iniciativa","item":null,"command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":true,"version":2,"hash":"sha256:28a19843f486209590aaaf28f96eefcc2ca349a71696979ddcd860ea1f1d65d8"}
+{"ts":"2026-08-12T23:00:15.774Z","stage":"iniciativa","item":null,"command":"/dsc-approve","event":"STAGE_COMPLETED","version":2,"invalidated":[]}
+{"ts":"2026-08-12T23:01:04.676Z","stage":"vision","command":"/dsc-vision","event":"STAGE_STARTED"}
+{"ts":"2026-08-12T23:01:04.677Z","stage":"vision","command":"/dsc-vision","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-12T23:09:23.777Z","stage":"vision","command":"/dsc-review","event":"FEEDBACK_ISSUED","version":1,"blocking":0,"total":2}
+{"ts":"2026-08-12T23:09:24.059Z","stage":"vision","item":null,"command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":true,"version":1,"hash":"sha256:16cacdd677cb76544e53fc841098dce77be048c807c3e909ec711f76166bde94"}
+{"ts":"2026-08-12T23:09:24.061Z","stage":"vision","item":null,"command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-12T23:10:15.737Z","stage":"roadmap","command":"/dsc-roadmap","event":"STAGE_STARTED"}
+{"ts":"2026-08-12T23:10:15.739Z","stage":"roadmap","command":"/dsc-roadmap","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-12T23:11:19.476Z","stage":"roadmap","command":"/dsc-review","event":"FEEDBACK_ISSUED","version":1,"blocking":0,"total":1}
+{"ts":"2026-08-12T23:11:19.666Z","stage":"roadmap","item":null,"command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":true,"version":1,"hash":"sha256:6a99ac9392d5e928a0e093dfd2fd72a9f1460f594c115e566f1f95d3c8f24888"}
+{"ts":"2026-08-12T23:11:19.668Z","stage":"roadmap","item":null,"command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-12T23:13:35.112Z","stage":"release","item":"R1","command":"/dsc-release","event":"STAGE_STARTED"}
+{"ts":"2026-08-12T23:13:35.115Z","stage":"release","item":"R1","command":"/dsc-release","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-12T23:13:35.391Z","stage":"release","item":"R1","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":true,"version":1,"hash":"sha256:f5d8ef929f2c421928063832a61b0b692e4dca8df665a09e177334e9b52ced08"}
+{"ts":"2026-08-12T23:13:35.392Z","stage":"release","item":"R1","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:35.181Z","stage":"features","command":"/dsc-features","event":"STAGE_STARTED"}
+{"ts":"2026-08-13T12:40:35.183Z","stage":"features","item":"F001","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.183Z","stage":"features","item":"F002","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.184Z","stage":"features","item":"F003","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.186Z","stage":"features","item":"F004","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.187Z","stage":"features","item":"F005","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.188Z","stage":"features","item":"F006","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.188Z","stage":"features","item":"F007","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:35.189Z","stage":"features","item":"F008","command":"/dsc-features","event":"ARTIFACT_CREATED","version":1,"actor":"Patricio Millán"}
+{"ts":"2026-08-13T12:40:50.086Z","stage":"features","item":"F001","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:50.244Z","stage":"features","item":"F001","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:1df60599beb1260eea6891b9c30cb17037abab05a131875b3b393b6c1ea19937"}
+{"ts":"2026-08-13T12:40:50.245Z","stage":"features","item":"F001","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:50.406Z","stage":"features","item":"F002","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:50.544Z","stage":"features","item":"F002","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:5efb6a16fdbd55febe3b0314cf1f4c51f0bd2af312def19db20e3b6884e3961e"}
+{"ts":"2026-08-13T12:40:50.545Z","stage":"features","item":"F002","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:50.756Z","stage":"features","item":"F003","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:50.893Z","stage":"features","item":"F003","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:48316933445a86cb608f5bf405dd69ba86b5bcd11e83a0d665a8bd224fd49201"}
+{"ts":"2026-08-13T12:40:50.895Z","stage":"features","item":"F003","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:51.059Z","stage":"features","item":"F004","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:51.218Z","stage":"features","item":"F004","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:9aa8983a2d77eeac571aefb4d211ee8d2184f3c1d5819f191c2282916e4fafd4"}
+{"ts":"2026-08-13T12:40:51.219Z","stage":"features","item":"F004","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:51.367Z","stage":"features","item":"F005","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:51.507Z","stage":"features","item":"F005","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:d3b63ac28f54b96f7f6c79f03872f2b14f7d95fbd1b1f94629989a8c097046a3"}
+{"ts":"2026-08-13T12:40:51.507Z","stage":"features","item":"F005","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:51.659Z","stage":"features","item":"F006","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:51.809Z","stage":"features","item":"F006","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:b1c6c7166243bd10a6b42fcff4a1089043eb4cd8ead96c1ce5e2ec745745b0d9"}
+{"ts":"2026-08-13T12:40:51.810Z","stage":"features","item":"F006","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:51.973Z","stage":"features","item":"F007","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:52.110Z","stage":"features","item":"F007","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:e9ab39e439833fd5ad4219f7e506d66968c2893868a3a1a778f7c660cc78cd1b"}
+{"ts":"2026-08-13T12:40:52.110Z","stage":"features","item":"F007","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:40:52.322Z","stage":"features","item":"F008","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"Product Owner","complete":false}
+{"ts":"2026-08-13T12:40:52.456Z","stage":"features","item":"F008","command":"/dsc-approve","event":"APPROVAL_GRANTED","actor":"Patricio Millán","role":"QA","complete":true,"version":1,"hash":"sha256:123f80f7a9496d698403faf18ac9ad0fafccef8e29f4ec2c778def37119cf304"}
+{"ts":"2026-08-13T12:40:52.456Z","stage":"features","item":"F008","command":"/dsc-approve","event":"STAGE_COMPLETED","version":1,"invalidated":[]}
+{"ts":"2026-08-13T12:41:09.252Z","stage":"estimation","item":"F001","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"S","score":2.85}
+{"ts":"2026-08-13T12:41:09.520Z","stage":"estimation","item":"F002","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"M","score":4.4}
+{"ts":"2026-08-13T12:41:09.701Z","stage":"estimation","item":"F003","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"XS","score":1.65}
+{"ts":"2026-08-13T12:41:09.950Z","stage":"estimation","item":"F004","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"S","score":2.35}
+{"ts":"2026-08-13T12:41:10.117Z","stage":"estimation","item":"F005","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"M","score":3.45}
+{"ts":"2026-08-13T12:41:10.286Z","stage":"estimation","item":"F006","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"XS","score":1.9}
+{"ts":"2026-08-13T12:41:10.449Z","stage":"estimation","item":"F007","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"XS","score":1.8}
+{"ts":"2026-08-13T12:41:10.627Z","stage":"estimation","item":"F008","command":"/dsc-estimate","event":"ARTIFACT_CREATED","size":"S","score":2.75}
+{"ts":"2026-08-13T12:43:17.491Z","stage":"handoff","item":"F001","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"001-canal-whatsapp","target_repo":null,"actor":"Patricio Millán","size":"S"}
+{"ts":"2026-08-13T12:43:17.701Z","stage":"handoff","item":"F002","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"002-agenda-multisede","target_repo":null,"actor":"Patricio Millán","size":"M"}
+{"ts":"2026-08-13T12:46:01.359Z","stage":"handoff","item":"F003","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"003-bloqueo-de-franjas","target_repo":null,"actor":"Patricio Millán","size":"XS"}
+{"ts":"2026-08-13T12:46:01.543Z","stage":"handoff","item":"F004","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"004-duracion-por-profesional","target_repo":null,"actor":"Patricio Millán","size":"S"}
+{"ts":"2026-08-13T12:46:01.708Z","stage":"handoff","item":"F005","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"005-envio-de-notificaciones","target_repo":null,"actor":"Patricio Millán","size":"M"}
+{"ts":"2026-08-13T12:46:01.893Z","stage":"handoff","item":"F006","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"006-plantillas-de-mensaje","target_repo":null,"actor":"Patricio Millán","size":"XS"}
+{"ts":"2026-08-13T12:46:02.071Z","stage":"handoff","item":"F007","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"007-estados-del-turno","target_repo":null,"actor":"Patricio Millán","size":"XS"}
+{"ts":"2026-08-13T12:46:02.259Z","stage":"handoff","item":"F008","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"008-historial-de-movimientos","target_repo":null,"actor":"Patricio Millán","size":"S"}
+{"ts":"2026-08-13T14:32:22.067Z","stage":"handoff","item":"F001","command":"/dsc-handoff","event":"HANDED_OFF","feature_id":"001-canal-whatsapp","target_repo":null,"actor":"Patricio Millán","size":"S"}

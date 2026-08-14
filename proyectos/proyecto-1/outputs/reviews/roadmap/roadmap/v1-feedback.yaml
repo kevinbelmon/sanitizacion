@@ -1,0 +1,23 @@
+artifact: proyectos/proyecto-1/outputs/roadmap/roadmap.md
+type: roadmap
+id: roadmap
+version: 1
+reviewed_at: 2026-08-12T23:50:00Z
+verdict: APPROVED
+self_check:
+  completitud: PASS
+  consistencia: PASS
+  alineacion: PASS
+  trazabilidad: PASS
+  placeholders: PASS
+  ambiguedad: PASS
+  tamano: WARN
+items:
+  - id: FB-001
+    severity: MINOR
+    section: "todo el artefacto"
+    reviewer: audit
+    role: check 11
+    comment: 161 lineas contra un limite de 150. Tercera vez consecutiva.
+    required_change: Recalibrar los cinco limites al terminar la cadena.
+    status: OPEN

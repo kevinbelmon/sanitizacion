@@ -1,0 +1,6 @@
+global:
+  PRY: 1
+  DEC: 7
+proyectos:
+  proyecto-1:
+    F: 8

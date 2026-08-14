@@ -1,0 +1,40 @@
+# Quien tiene que firmar cada artefacto para que pase a APPROVED.
+# Lo lee /dsc-approve. El check 6 del audit verifica que no falte ninguna firma required.
+#
+# approval: required  -> sin esta firma el artefacto no puede aprobarse
+# approval: optional  -> se registra si la dan, pero no bloquea
+#
+# Ajustar esta matriz a los roles reales de la organizacion.
+
+iniciativa:
+  reviewers:
+    - role: Product Owner
+      approval: required
+
+vision:
+  reviewers:
+    - role: Product Owner
+      approval: required
+    - role: UX
+      approval: optional
+
+roadmap:
+  reviewers:
+    - role: Product Owner
+      approval: required
+    - role: Architecture
+      approval: optional
+
+release:
+  reviewers:
+    - role: Product Owner
+      approval: required
+
+feature:
+  reviewers:
+    - role: Product Owner
+      approval: required
+    - role: QA
+      approval: required
+    - role: UX
+      approval: optional

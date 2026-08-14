@@ -1,0 +1,239 @@
+#!/usr/bin/env node
+/**
+ * smoke — prueba el propio Discovery Model de punta a punta.
+ *
+ * Recorre la cadena completa sobre un proyecto descartable y verifica que cada
+ * eslabon siga funcionando. Es el equivalente de /sdd-test: prueba el modelo,
+ * no un proyecto.
+ *
+ * Limpia siempre al terminar, incluso si falla: no puede dejar residuos en
+ * proyectos/ ni tocar el registro real.
+ *
+ * Uso:  node scripts/smoke.mjs
+ */
+
+import { join } from 'node:path';
+import { existsSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { ROOT, proyectoDir, readYaml, writeYaml, reservarIds } from '../lib/store.mjs';
+
+const SLUG = 'smoke-test-descartable';
+const REG = ['ids', 'proyectos', 'capabilities', 'features'];
+
+let fallos = 0;
+const paso = (nombre, fn) => {
+  try {
+    const detalle = fn();
+    console.log(`  ok    ${nombre}${detalle ? ` — ${detalle}` : ''}`);
+  } catch (err) {
+    console.log(`  FALLA ${nombre}`);
+    console.log(`        ${err.message.split('\n')[0]}`);
+    fallos++;
+  }
+};
+
+const correr = (script, ...args) =>
+  execFileSync('node', [join(ROOT, 'scripts', script), ...args], { encoding: 'utf8', cwd: ROOT });
+
+const debe = (cond, msg) => { if (!cond) throw new Error(msg); };
+
+// --- Respaldo del registro real ---------------------------------------------
+// El smoke escribe en los mismos archivos que el modelo. Se respalda todo y se
+// restaura al final: una prueba que contamina el registro es peor que no probar.
+const respaldo = {};
+function respaldar() {
+  for (const r of REG) respaldo[r] = readFileSync(join(ROOT, 'registry', `${r}.yaml`), 'utf8');
+}
+/** Espera bloqueante sin dependencias: el smoke es sincrono de punta a punta. */
+const esperar = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+
+/**
+ * En Windows el borrado recursivo falla con EPERM cuando algo todavia tiene un
+ * handle abierto — el indexador, el antivirus o el sincronizador de la nube —
+ * justo despues de una rafaga de escrituras. Es el mismo escenario que
+ * contracts/state.md contempla para las escrituras del modelo.
+ *
+ * No alcanza con los reintentos internos de rmSync: hay que darle tiempo al
+ * sistema a soltar los handles entre intento e intento.
+ */
+function borrarProyecto() {
+  const dir = proyectoDir(SLUG);
+  for (let intento = 1; intento <= 5; intento++) {
+    try {
+      rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+      if (!existsSync(dir)) return { ok: true, intentos: intento };
+    } catch { /* se reintenta abajo */ }
+    esperar(300 * intento);
+  }
+  return { ok: false, intentos: 5 };
+}
+
+function restaurar() {
+  for (const r of REG) {
+    if (respaldo[r] !== undefined) writeFileSync(join(ROOT, 'registry', `${r}.yaml`), respaldo[r], 'utf8');
+  }
+  const r = borrarProyecto();
+  if (!r.ok) {
+    console.log(`\n  Aviso: no se pudo borrar proyectos/${SLUG} despues de ${r.intentos} intentos.`);
+    console.log(`  Es un bloqueo del sistema de archivos, no una falla del modelo.`);
+    console.log(`  Borrala a mano y volve a correr el smoke.`);
+  }
+}
+
+function main() {
+  console.log('Smoke test del Discovery Model\n');
+  respaldar();
+
+  const P = proyectoDir(SLUG);
+
+  paso('crear proyecto', () => {
+    correr('new-proyecto.mjs', 'Smoke Test Descartable', '--owner', 'smoke');
+    debe(existsSync(join(P, 'metrics', 'workflow-status.json')), 'no se creo el estado');
+    return SLUG;
+  });
+
+  paso('escribir la cadena de artefactos', () => {
+    const f = readFileSync(join(ROOT, 'fixtures', 'cadena.md'), 'utf8');
+    const partes = Object.fromEntries(
+      f.split(/^=== (.+) ===$/m).slice(1).reduce((a, v, i, arr) =>
+        i % 2 === 0 ? [...a, [v.trim(), arr[i + 1].trim()]] : a, [])
+    );
+    writeFileSync(join(P, 'iniciativa.md'), partes.iniciativa, 'utf8');
+    writeFileSync(join(P, 'outputs', 'vision', 'vision.md'), partes.vision, 'utf8');
+    writeFileSync(join(P, 'outputs', 'roadmap', 'roadmap.md'), partes.roadmap, 'utf8');
+    writeFileSync(join(P, 'outputs', 'releases', 'R1.md'), partes.release, 'utf8');
+    writeFileSync(join(P, 'outputs', 'features', 'F001-caso-de-prueba.md'), partes.feature, 'utf8');
+    return '5 artefactos';
+  });
+
+  paso('registrar capacidad y feature', () => {
+    const pc = join(ROOT, 'registry', 'capabilities.yaml');
+    const c = readYaml(pc, { capabilities: [] });
+    c.capabilities.push({ id: 'BC01', proyecto: SLUG, name: 'Prueba', epics: ['EP001'], sdd_domain: 'prueba' });
+    writeYaml(pc, c);
+
+    // El ID se reserva del registro, no se escribe a mano. El smoke tiene que
+    // respetar contracts/ids.md como cualquier otro comando: si lo saltea, el
+    // check 10 del audit lo detecta — y con razon.
+    const [id] = reservarIds('F', SLUG, 1);
+    const pf = join(ROOT, 'registry', 'features.yaml');
+    const r = readYaml(pf, { features: [] });
+    r.features.push({
+      id, proyecto: SLUG, slug: 'caso-de-prueba', proyecto_id: 'PRY-001',
+      capability: 'BC01', epic: 'EP001', release: 'R1', users: ['U01'],
+      size: null, status: 'APPROVED', decisions: [], depends_on: [],
+    });
+    writeYaml(pf, r);
+    return id;
+  });
+
+  paso('marcar la cadena como aprobada', () => {
+    const p = join(P, 'metrics', 'workflow-status.json');
+    const s = JSON.parse(readFileSync(p, 'utf8'));
+    const ahora = new Date().toISOString();
+    const firma = { 'Product Owner': { by: 'smoke', at: ahora, verdict: 'approved' } };
+    for (const e of ['iniciativa', 'vision', 'roadmap']) {
+      s.stages[e] = { status: 'APPROVED', version: 1, approved_at: ahora, approvals: firma };
+    }
+    s.stages.release = { status: 'APPROVED', items: { R1: { status: 'APPROVED', version: 1, approved_at: ahora, approvals: firma } } };
+    s.stages.features = { status: 'APPROVED', items: { F001: { status: 'APPROVED', version: 1, approved_at: ahora, approvals: { ...firma, QA: { by: 'smoke', at: ahora, verdict: 'approved' } } } } };
+    writeFileSync(p, JSON.stringify(s, null, 2), 'utf8');
+  });
+
+  paso('generar el roadmap visual', () => {
+    correr('gen-roadmap.mjs', SLUG);
+    const h = join(P, 'outputs', 'roadmap', 'roadmap.html');
+    debe(existsSync(h), 'no se genero el HTML');
+    const c = readFileSync(h, 'utf8');
+    debe(!/https?:\/\//.test(c), 'el HTML tiene referencias externas');
+    debe(c.includes("default-src 'none'"), 'falta la CSP');
+    return 'sin red, con CSP';
+  });
+
+  paso('estimar la feature', () => {
+    const out = correr('estimate.mjs', SLUG, 'F001',
+      '--funcional', 'S', '--interfaz', 'S', '--arquitectura', 'XS',
+      '--integraciones', 'XS', '--seguridad', 'S', '--testing', 'S',
+      '--justificacion', 'Caso de prueba minimo.');
+    debe(/Talle\s+(XS|S)/.test(out), 'el talle no salio como se esperaba');
+    return out.match(/Talle\s+(\w+)/)[1];
+  });
+
+  paso('audit sin errores', () => {
+    const out = correr('discovery-audit.mjs', SLUG);
+    debe(/0 error/.test(out), 'el audit encontro errores en un modelo que deberia estar sano');
+    return '15 checks';
+  });
+
+  paso('calcular metricas', () => {
+    correr('gen-metrics.mjs', SLUG);
+    const m = JSON.parse(readFileSync(join(P, 'metrics', 'project-metrics.json'), 'utf8'));
+    debe(m.progreso.valor > 0, 'el progreso quedo en cero');
+    return `progreso ${m.progreso.valor}%, calidad ${m.calidad.indice}/100`;
+  });
+
+  paso('generar el tablero', () => {
+    correr('gen-dashboard.mjs');
+    const d = readFileSync(join(ROOT, 'dashboard', 'data.js'), 'utf8');
+    debe(!d.slice(d.indexOf('=')).includes('<'), 'el payload tiene < sin escapar');
+    debe(d.includes(SLUG), 'el proyecto de prueba no aparece en el tablero');
+
+    /* El tablero se abre con file://. Un script externo o una CSP con 'self'
+       lo dejan en blanco sin avisar: el navegador bloquea y no hay error
+       visible. Paso a paso porque ya pasó una vez. Ver DEC-005. */
+    const h = readFileSync(join(ROOT, 'dashboard', 'index.html'), 'utf8');
+    debe(h.includes('window.DSC_DATA'), 'el tablero no tiene los datos inline: con file:// queda en blanco');
+    debe(!/<script[^>]+src=/.test(h), 'el tablero carga un script externo: file:// lo bloquea');
+    const csp = h.match(/http-equiv="Content-Security-Policy"[\s\S]{0,200}?content="([^"]*)"/);
+    debe(csp, 'el tablero no declara CSP');
+    debe(!csp[1].includes("'self'"), "la CSP usa 'self': con file:// el origen es opaco y bloquea todo");
+    debe(csp[1].includes("default-src 'none'"), 'la CSP dejo de bloquear la salida a la red');
+    debe(h.includes(SLUG), 'el proyecto de prueba no aparece en el HTML del tablero');
+    return 'payload escapado, tablero autocontenido';
+  });
+
+  paso('exportar el handoff', () => {
+    const out = correr('handoff.mjs', SLUG, 'F001', '--by', 'smoke');
+    const brief = join(P, 'outputs', 'handoff', '001-caso-de-prueba', 'brief.md');
+    debe(existsSync(brief), 'no se genero el brief');
+    const b = readFileSync(brief, 'utf8');
+    for (const s of ['PROBLEMA', 'USUARIO', 'DONE CRITERIA', 'OUT OF SCOPE', 'RESTRICCIONES TÉCNICAS', 'UI / FLUJO']) {
+      debe(b.includes(`## ${s}`), `falta la seccion ## ${s} en el brief`);
+    }
+    debe(!b.includes('BLOQUE DISCOVERY'), 'el bloque Discovery se exporto y no deberia');
+    return 'las 6 secciones, sin el bloque Discovery';
+  });
+
+  paso('el gate rechaza una feature XL', () => {
+    const pf = join(ROOT, 'registry', 'features.yaml');
+    const r = readYaml(pf);
+    const f = r.features.find((x) => x.id === 'F001' && x.proyecto === SLUG);
+    f.size = 'XL'; f.status = 'APPROVED'; f.handed_off = null; f.feature_id = null;
+    writeYaml(pf, r);
+    let rechazo = false;
+    try { correr('handoff.mjs', SLUG, 'F001', '--by', 'smoke'); }
+    catch (err) { rechazo = /XL/.test(err.stdout ?? '') || /XL/.test(err.stderr ?? ''); }
+    debe(rechazo, 'una feature XL logro cruzar a desarrollo');
+    return 'XL bloqueada';
+  });
+}
+
+try {
+  main();
+} catch (err) {
+  console.log(`\nEl smoke se interrumpio: ${err.message}`);
+  fallos++;
+} finally {
+  restaurar();
+  // El tablero queda apuntando al proyecto de prueba: se regenera limpio.
+  try { execFileSync('node', [join(ROOT, 'scripts', 'gen-dashboard.mjs')], { cwd: ROOT, stdio: 'ignore' }); } catch {}
+}
+
+const residuos = existsSync(proyectoDir(SLUG));
+console.log(`\n  ${residuos ? 'FALLA' : 'ok   '} limpieza — ${residuos ? 'quedaron residuos en proyectos/' : 'sin residuos'}`);
+if (residuos) fallos++;
+
+console.log(fallos
+  ? `\n${fallos} paso(s) fallaron. El modelo tiene algo roto.`
+  : `\nTodos los pasos pasaron. El modelo funciona de punta a punta.`);
+process.exit(fallos ? 1 : 0);

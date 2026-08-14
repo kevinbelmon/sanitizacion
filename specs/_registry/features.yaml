@@ -1,0 +1,66 @@
+features:
+  - id: 001-fundacion
+    status: CLOSED
+    domain: harness
+    depends_on: []
+    scope: "Estructura .claude/, CLAUDE.md con trigger-table, config saneada, contratos de estado/rutas/ids, events.jsonl, dashboard mínimo. Comandos: /dsc-setup, /dsc-explain, /dsc-new, /dsc-status."
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 002-templates-cadena
+    status: CLOSED
+    domain: artefactos
+    depends_on:
+      - 001-fundacion
+    scope: Templates extendidos (usuarios, alcance, restricciones, riesgos, dependencias estratégicas). Política de invalidación en cascada. 9 agentes saneados sobre las rutas nuevas.
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 003-ciclo-principal
+    status: CLOSED
+    domain: ciclo
+    depends_on:
+      - 002-templates-cadena
+    scope: /dsc-refine (grilling de 7 categorías, reanudable), /dsc-vision, /dsc-roadmap (+ HTML ejecutivo), /dsc-release, /dsc-features.
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 004-gobernanza
+    status: CLOSED
+    domain: gobernanza
+    depends_on:
+      - 003-ciclo-principal
+    scope: /dsc-review, /dsc-approve, /dsc-log, /dsc-validate, /dsc-impact, /dsc-restore. Contrato de feedback, approvals/, history/.
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 005-audit
+    status: CLOSED
+    domain: determinismo
+    depends_on:
+      - 004-gobernanza
+    scope: registry/ completo, discovery-audit.mjs con 15 checks, parser YAML propio sin dependencias, /dsc-audit, /dsc-health.
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 006-dashboard
+    status: CLOSED
+    domain: observabilidad
+    depends_on:
+      - 005-audit
+    scope: /dsc-metrics sobre events.jsonl, gen-dashboard.mjs, tres vistas (Ejecutivo, Operativo, Portfolio), semáforos desde governance.yaml, /dsc-portfolio.
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 007-puente-sdd
+    status: CLOSED
+    domain: integracion
+    depends_on:
+      - 003-ciclo-principal
+      - 005-audit
+    scope: /dsc-estimate, /dsc-split, contrato de handoff, /dsc-handoff, y los tres parches aditivos en sdd-model (P1, P2, P3).
+    specs_ready: true
+    closed: 2026-08-10
+  - id: 008-pulido
+    status: CLOSED
+    domain: harness
+    depends_on:
+      - 006-dashboard
+      - 007-puente-sdd
+    scope: Skill discovery-standards + references, /dsc-checklist, /dsc-change, /dsc-snapshot, /dsc-test, /dsc-run (orquestador).
+    specs_ready: true
+    closed: 2026-08-11

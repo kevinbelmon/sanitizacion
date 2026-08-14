@@ -1,0 +1,72 @@
+# Etapas del Discovery Model.
+# El orquestador no tiene el flujo hardcodeado: lo lee de aca.
+# Agregar una etapa es editar este archivo, no un comando.
+#
+# id        identificador de la etapa, usado en workflow-status.json
+# command   comando que la ejecuta
+# artifact  ruta relativa a proyectos/<proyecto>/
+# agent     subagente que genera el artefacto (null si lo hace el comando)
+# requires  etapas que deben estar APPROVED antes de ejecutar esta
+
+workflow:
+
+  - id: iniciativa
+    name: Iniciativa
+    command: /dsc-refine
+    artifact: iniciativa.md
+    agent: null
+    requires: []
+
+  - id: vision
+    name: Vision
+    command: /dsc-vision
+    artifact: outputs/vision/vision.md
+    agent: vision-creator
+    requires:
+      - iniciativa
+
+  - id: roadmap
+    name: Roadmap
+    command: /dsc-roadmap
+    artifact: outputs/roadmap/roadmap.md
+    agent: roadmap-creator
+    requires:
+      - vision
+
+  - id: release
+    name: Release Plan
+    command: /dsc-release
+    artifact: outputs/releases/
+    agent: release-planner
+    requires:
+      - roadmap
+
+  - id: features
+    name: Features
+    command: /dsc-features
+    artifact: outputs/features/
+    agent: feature-decomposer
+    requires:
+      - release
+
+  - id: estimation
+    name: Estimacion
+    command: /dsc-estimate
+    artifact: outputs/estimations/
+    agent: feature-estimator
+    requires:
+      - features
+
+  - id: handoff
+    name: Handoff a SDD
+    command: /dsc-handoff
+    artifact: outputs/handoff/
+    agent: null
+    requires:
+      - estimation
+
+# Comandos que se ejecutan automaticamente despues de cada aprobacion.
+postApproval:
+  - decision-logger
+  - metrics
+  - dashboard

@@ -1,0 +1,173 @@
+features:
+  - id: F001
+    proyecto: proyecto-1
+    slug: canal-whatsapp
+    capability: BC02
+    epic: EP001
+    release: R1
+    users:
+      - U03
+    size: S
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:1df60599beb1260eea6891b9c30cb17037abab05a131875b3b393b6c1ea19937
+    version: 1
+    feature_id: 001-canal-whatsapp
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on: []
+  - id: F002
+    proyecto: proyecto-1
+    slug: agenda-multisede
+    capability: BC01
+    epic: EP002
+    release: R1
+    users:
+      - U01
+      - U02
+    size: M
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:5efb6a16fdbd55febe3b0314cf1f4c51f0bd2af312def19db20e3b6884e3961e
+    version: 1
+    feature_id: 002-agenda-multisede
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on: []
+  - id: F003
+    proyecto: proyecto-1
+    slug: bloqueo-de-franjas
+    capability: BC01
+    epic: EP002
+    release: R1
+    users:
+      - U02
+    size: XS
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:48316933445a86cb608f5bf405dd69ba86b5bcd11e83a0d665a8bd224fd49201
+    version: 1
+    feature_id: 003-bloqueo-de-franjas
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F002
+  - id: F004
+    proyecto: proyecto-1
+    slug: duracion-por-profesional
+    capability: BC01
+    epic: EP002
+    release: R1
+    users:
+      - U01
+      - U02
+    size: S
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:9aa8983a2d77eeac571aefb4d211ee8d2184f3c1d5819f191c2282916e4fafd4
+    version: 1
+    feature_id: 004-duracion-por-profesional
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F002
+  - id: F005
+    proyecto: proyecto-1
+    slug: envio-de-notificaciones
+    capability: BC02
+    epic: EP003
+    release: R1
+    users:
+      - U03
+    size: M
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:d3b63ac28f54b96f7f6c79f03872f2b14f7d95fbd1b1f94629989a8c097046a3
+    version: 1
+    feature_id: 005-envio-de-notificaciones
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F001
+      - F002
+  - id: F006
+    proyecto: proyecto-1
+    slug: plantillas-de-mensaje
+    capability: BC02
+    epic: EP003
+    release: R1
+    users:
+      - U01
+      - U03
+    size: XS
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:b1c6c7166243bd10a6b42fcff4a1089043eb4cd8ead96c1ce5e2ec745745b0d9
+    version: 1
+    feature_id: 006-plantillas-de-mensaje
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F001
+  - id: F007
+    proyecto: proyecto-1
+    slug: estados-del-turno
+    capability: BC05
+    epic: EP004
+    release: R1
+    users:
+      - U02
+      - U01
+    size: XS
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:e9ab39e439833fd5ad4219f7e506d66968c2893868a3a1a778f7c660cc78cd1b
+    version: 1
+    feature_id: 007-estados-del-turno
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F002
+  - id: F008
+    proyecto: proyecto-1
+    slug: historial-de-movimientos
+    capability: BC05
+    epic: EP004
+    release: R1
+    users:
+      - U01
+    size: S
+    status: HANDED_OFF
+    owner: ejemplo owner 1
+    claimed_by: null
+    claimed_at: null
+    hash: sha256:123f80f7a9496d698403faf18ac9ad0fafccef8e29f4ec2c778def37119cf304
+    version: 1
+    feature_id: 008-historial-de-movimientos
+    target_repo: null
+    handed_off: 2026-08-13
+    decisions: []
+    depends_on:
+      - F002
+      - F007

@@ -1,0 +1,13 @@
+{
+  "name": "discovery-model",
+  "private": true,
+  "type": "module",
+  "description": "Discovery Model — de una idea de negocio a features listas para SDD",
+  "scripts": {
+    "check": "node scripts/check-env.mjs",
+    "dashboard": "node scripts/gen-dashboard.mjs",
+    "audit": "node scripts/discovery-audit.mjs",
+    "metrics": "node scripts/gen-metrics.mjs",
+    "test": "node scripts/smoke.mjs"
+  }
+}

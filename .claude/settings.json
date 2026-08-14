@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version)",
+      "Bash(node scripts/check-env.mjs)",
+      "Bash(node scripts/gen-dashboard.mjs)",
+      "Bash(node scripts/new-proyecto.mjs:*)",
+      "Bash(node scripts/gen-roadmap.mjs:*)",
+      "Bash(node scripts/approve.mjs:*)",
+      "Bash(node scripts/impact.mjs:*)",
+      "Bash(node scripts/restore.mjs:*)",
+      "Bash(node scripts/discovery-audit.mjs)",
+      "Bash(node scripts/discovery-audit.mjs:*)",
+      "Bash(node scripts/gen-metrics.mjs)",
+      "Bash(node scripts/gen-metrics.mjs:*)",
+      "Bash(node scripts/estimate.mjs:*)",
+      "Bash(node scripts/split.mjs:*)",
+      "Bash(node scripts/handoff.mjs:*)",
+      "Bash(node scripts/smoke.mjs)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/dsc-session-capture.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "proyecto": "proyecto-1",
+  "proyecto_id": "PRY-001",
+  "updated": "2026-08-13T14:32:22.062Z",
+  "updated_by": "Patricio Millán",
+  "current_stage": "features",
+  "stages": {
+    "iniciativa": {
+      "status": "APPROVED",
+      "version": 2,
+      "hash": "sha256:28a19843f486209590aaaf28f96eefcc2ca349a71696979ddcd860ea1f1d65d8",
+      "approved_at": "2026-08-12T23:00:15.726Z",
+      "approvals": {
+        "Product Owner": {
+          "by": "Patricio Millán",
+          "at": "2026-08-12T23:00:15.726Z",
+          "verdict": "approved",
+          "comment": null
+        }
+      },
+      "pending_roles": []
+    },
+    "vision": {
+      "status": "APPROVED",
+      "version": 1,
+      "pending_roles": [],
+      "hash": "sha256:16cacdd677cb76544e53fc841098dce77be048c807c3e909ec711f76166bde94",
+      "approved_at": "2026-08-12T23:09:24.028Z",
+      "approvals": {
+        "Product Owner": {
+          "by": "Patricio Millán",
+          "at": "2026-08-12T23:09:24.028Z",
+          "verdict": "approved",
+          "comment": null
+        }
+      }
+    },
+    "roadmap": {
+      "status": "APPROVED",
+      "version": 1,
+      "pending_roles": [],
+      "hash": "sha256:6a99ac9392d5e928a0e093dfd2fd72a9f1460f594c115e566f1f95d3c8f24888",
+      "approved_at": "2026-08-12T23:11:19.645Z",
+      "approvals": {
+        "Product Owner": {
+          "by": "Patricio Millán",
+          "at": "2026-08-12T23:11:19.645Z",
+          "verdict": "approved",
+          "comment": null
+        }
+      }
+    },
+    "release": {
+      "status": "APPROVED",
+      "items": {
+        "R1": {
+          "status": "APPROVED",
+          "version": 1,
+          "pending_roles": [],
+          "hash": "sha256:f5d8ef929f2c421928063832a61b0b692e4dca8df665a09e177334e9b52ced08",
+          "approved_at": "2026-08-12T23:13:35.361Z",
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-12T23:13:35.361Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          }
+        }
+      }
+    },
+    "features": {
+      "status": "APPROVED",
+      "items": {
+        "F001": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.079Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.230Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:1df60599beb1260eea6891b9c30cb17037abab05a131875b3b393b6c1ea19937",
+          "approved_at": "2026-08-13T12:40:50.230Z"
+        },
+        "F002": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.399Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.532Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:5efb6a16fdbd55febe3b0314cf1f4c51f0bd2af312def19db20e3b6884e3961e",
+          "approved_at": "2026-08-13T12:40:50.532Z"
+        },
+        "F003": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.747Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:50.879Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:48316933445a86cb608f5bf405dd69ba86b5bcd11e83a0d665a8bd224fd49201",
+          "approved_at": "2026-08-13T12:40:50.879Z"
+        },
+        "F004": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.053Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.205Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:9aa8983a2d77eeac571aefb4d211ee8d2184f3c1d5819f191c2282916e4fafd4",
+          "approved_at": "2026-08-13T12:40:51.205Z"
+        },
+        "F005": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.361Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.495Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:d3b63ac28f54b96f7f6c79f03872f2b14f7d95fbd1b1f94629989a8c097046a3",
+          "approved_at": "2026-08-13T12:40:51.495Z"
+        },
+        "F006": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.652Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.795Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:b1c6c7166243bd10a6b42fcff4a1089043eb4cd8ead96c1ce5e2ec745745b0d9",
+          "approved_at": "2026-08-13T12:40:51.795Z"
+        },
+        "F007": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:51.967Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:52.096Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:e9ab39e439833fd5ad4219f7e506d66968c2893868a3a1a778f7c660cc78cd1b",
+          "approved_at": "2026-08-13T12:40:52.096Z"
+        },
+        "F008": {
+          "status": "APPROVED",
+          "version": 1,
+          "approvals": {
+            "Product Owner": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:52.316Z",
+              "verdict": "approved",
+              "comment": null
+            },
+            "QA": {
+              "by": "Patricio Millán",
+              "at": "2026-08-13T12:40:52.444Z",
+              "verdict": "approved",
+              "comment": null
+            }
+          },
+          "pending_roles": [],
+          "hash": "sha256:123f80f7a9496d698403faf18ac9ad0fafccef8e29f4ec2c778def37119cf304",
+          "approved_at": "2026-08-13T12:40:52.444Z"
+        }
+      }
+    },
+    "handoff": {
+      "status": "IN_PROGRESS",
+      "items": {
+        "F001": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T14:32:22.060Z",
+          "feature_id": "001-canal-whatsapp"
+        },
+        "F002": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:43:17.697Z",
+          "feature_id": "002-agenda-multisede"
+        },
+        "F003": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:01.354Z",
+          "feature_id": "003-bloqueo-de-franjas"
+        },
+        "F004": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:01.539Z",
+          "feature_id": "004-duracion-por-profesional"
+        },
+        "F005": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:01.703Z",
+          "feature_id": "005-envio-de-notificaciones"
+        },
+        "F006": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:01.889Z",
+          "feature_id": "006-plantillas-de-mensaje"
+        },
+        "F007": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:02.067Z",
+          "feature_id": "007-estados-del-turno"
+        },
+        "F008": {
+          "status": "APPROVED",
+          "version": 1,
+          "approved_at": "2026-08-13T12:46:02.256Z",
+          "feature_id": "008-historial-de-movimientos"
+        }
+      }
+    }
+  },
+  "blocked_by": null,
+  "next_action": "Entregar el brief al equipo de desarrollo",
+  "next_command": "/dsc-status",
+  "last_error": null
+}
