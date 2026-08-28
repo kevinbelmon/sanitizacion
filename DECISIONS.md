@@ -16,6 +16,8 @@ Lo escribe `/dsc-log`. Los IDs se reservan desde `registry/ids.yaml`.
 | DEC-005 | La CSP de los HTML usa `script-src 'unsafe-inline'`, no `'self'` | Técnica | ACTIVE | 2026-08-13 |
 | DEC-006 | Los cinco límites de tamaño se recalibran contra artefactos reales | Proceso | ACTIVE | 2026-08-13 |
 | DEC-007 | Los contadores de ID pasan de `products` a `proyectos`, con migración | Técnica | ACTIVE | 2026-08-14 |
+| DEC-008 | Las dependencias entre épicas se declaran en una columna de la tabla del roadmap | Producto | ACTIVE | 2026-08-28 |
+| DEC-009 | `started_at` se persiste en el estado, no solo como evento | Proceso | ACTIVE | 2026-08-28 |
 
 ---
 
@@ -194,8 +196,8 @@ El límite de la iniciativa sube de 80 a 100 líneas
 
 ### Gap o motivo
 
-La primera iniciativa real del modelo —plataforma de turnos, PRY-001— cerró en 83 líneas
-después de dos rondas de recorte. El check 11 del audit la marcó por exceder el límite de 80.
+La primera iniciativa real del modelo cerró en 83 líneas después de dos rondas de recorte.
+El check 11 del audit la marcó por exceder el límite de 80.
 
 Al medirlo se ve que el número nunca salió de una medición: el template obliga a 7 secciones
 más los supuestos declarados, y entre frontmatter, títulos y líneas en blanco la estructura
@@ -507,3 +509,185 @@ Se puede sacar cuando no queden copias con el formato viejo. Hasta entonces, se 
 
 Ninguno. El audit devuelve los mismos 0 errores y 14 avisos que antes del cambio, y el smoke
 pasa los once pasos.
+
+---
+
+## DEC-008
+
+**Fecha:** 2026-08-28
+**Tipo:** Producto
+**Estado:** ACTIVE
+**Responsable:** Patricio Millán
+**Proyecto:** global
+**command_origin:** fix de visualización de dependencias entre épicas
+
+### Título
+
+Las dependencias entre épicas se declaran en una columna de la tabla del roadmap
+
+### Gap o motivo
+
+El modelo ya consideraba las dependencias entre épicas —`/dsc-roadmap` validaba que ninguna se
+planificara antes que aquello de lo que depende, y que no hubiera ciclos— pero **no las mostraba**.
+Solo aparecían en el bloque conversacional de ordenamiento, y después había que pedirlas con
+`/dsc-impact`, que es informativo y hay que saber que existe.
+
+La causa no era falta de lógica: las dependencias de épicas no tenían hogar estructurado. Vivían
+como prosa en el campo `**Dependencias**` del bloque de cada épica. La tabla del roadmap —que es
+lo que lee `scripts/gen-roadmap.mjs` para la vista ejecutiva— tenía seis columnas y ninguna era
+dependencias. Consecuencias: el HTML que mira el PO no las mostraba, `/dsc-release` y
+`/dsc-features` las validaban en silencio, y el audit no podía verificar ciclos entre épicas
+porque no había dato que leer.
+
+Las features sí las tenían resueltas: `depends_on` en `registry/features.yaml`, verificado por el
+chequeo 4. La asimetría era el problema.
+
+### Alternativas consideradas
+
+1. Dejarlas como prosa y mejorar solo el texto de los comandos.
+2. Crear un `registry/epics.yaml` espejo de `registry/features.yaml`.
+3. Agregar una columna a la tabla del roadmap, que ya es el contrato que lee el generador.
+
+### Por qué se descartaron
+
+La 1 no arregla nada verificable: la prosa no se puede dibujar ni auditar, y el pedido era
+justamente que se vea sin correr un comando.
+
+La 2 es la tentadora y es la que hay que evitar. Crea una segunda copia de la misma verdad —la
+épica quedaría declarada en el roadmap y en un registro— que alguien tiene que mantener
+sincronizada a mano. Es la misma clase de problema que DEC-007 vino a limpiar.
+
+### Decisión tomada
+
+1. **La columna `Depende de` es la última de la tabla del roadmap y no se reordena.** Lleva IDs de
+   épica separados por coma, o `—`. Va al final por compatibilidad: `gen-roadmap.mjs` acepta seis
+   columnas o más, así que un roadmap generado antes de este cambio sigue funcionando. Insertada en
+   el medio, rompía todos los roadmaps existentes.
+2. **Es épica→épica.** Las dependencias externas o estratégicas siguen en la sección
+   "Dependencias estratégicas" con ID `DE-nnn`. Son conceptos distintos y no se mezclan.
+3. **El parser vive en `lib/roadmap.mjs`, no en el generador.** Hay dos consumidores —la vista
+   ejecutiva y el chequeo 16— y con el parser duplicado un cambio de formato dejaría a uno de los
+   dos leyendo mal en silencio.
+4. **El chequeo 16 es opt-in por presencia de la columna.** Un roadmap que no la declara no se
+   audita. Sin eso, agregar el chequeo pondría rojo retroactivamente a todo proyecto ya aprobado,
+   que estaba verde y no cambió.
+5. **Se muestra en tres puntos del ciclo**, no solo a pedido: al cerrar `/dsc-roadmap` (qué
+   dependencias generan espera entre trimestres), al seleccionar épicas en `/dsc-release` (si la
+   dependencia entra en el release o queda afuera), y en la vista ejecutiva HTML, con ↗ cuando
+   cruza de trimestre y ? cuando apunta a una épica inexistente.
+
+### Motivo
+
+Una dependencia que cruza de trimestre es la única que cuesta tiempo de calendario, y es una
+decisión de negocio: se toma con el PO mirándola, no se valida en silencio. Las de dentro del
+mismo trimestre son orden de trabajo, no espera.
+
+El cambio aplica **solo hacia adelante**. Editar un `roadmap.md` ya aprobado para agregarle la
+columna lo marcaría como modificado a mano en el chequeo 12, que es semánticamente falso: el
+artefacto no se alteró, el template evolucionó.
+
+### Artefactos modificados
+
+`lib/roadmap.mjs` (nuevo), `scripts/gen-roadmap.mjs`, `scripts/discovery-audit.mjs`,
+`scripts/smoke.mjs`, `templates/roadmap-template.md`, `fixtures/cadena.md`,
+`.claude/commands/dsc-roadmap.md`, `.claude/commands/dsc-release.md`,
+`.claude/commands/dsc-features.md`, `.claude/commands/dsc-status.md`.
+
+### Impacto en la cadena
+
+Ninguno sobre lo existente. El audit devuelve los mismos 0 errores y 14 avisos que antes del
+cambio —el chequeo 16 saltea el roadmap de seis columnas de `proyecto-1`— y el smoke pasa los
+catorce pasos, incluidos los dos casos nuevos: un ciclo entre épicas que tiene que fallar, y un
+roadmap sin la columna que el chequeo tiene que ignorar.
+
+---
+
+## DEC-009
+
+**Fecha:** 2026-08-28
+**Tipo:** Proceso
+**Estado:** ACTIVE
+**Responsable:** Patricio Millán
+**Proyecto:** global
+**command_origin:** fix de fechas de inicio y fin de etapa
+
+### Título
+
+`started_at` se persiste en el estado, no solo como evento, y es de la versión en curso
+
+### Gap o motivo
+
+El pedido era registrar fecha de inicio (cuando se dispara el comando) y de fin (cuando el PO
+aprueba). Al medirlo contra el código, la mitad "fin" ya estaba resuelta y mejor que el pedido:
+`scripts/approve.mjs` escribe `approved_at` al completarse la aprobación, y `approvals` guarda
+además la fecha de cada firma por rol. Nada de eso se mostraba en ningún lado.
+
+La mitad "inicio" estaba a medias, y de una forma difícil de ver. El evento `STAGE_STARTED` **sí**
+se emitía —el log de `proyecto-1` tiene uno por etapa, de `/dsc-new`, `/dsc-vision`,
+`/dsc-roadmap`, `/dsc-release` y `/dsc-features`— pero `started_at` no existía en ninguna parte del
+repo. La fecha vivía únicamente en `events.jsonl`, que es append-only y hay que recorrer entero
+para consultarlo. Resultado: `/dsc-status` y el tablero, que leen el estado, no tenían de dónde
+sacarla.
+
+Se descartó de entrada una hipótesis previa que resultó falsa: que las métricas `stageTime` y
+`flowEfficiency` estuvieran calculando sobre un conjunto vacío. Calculan bien
+(`stageTime: 0.07`, `flowEfficiency: 29.6`) porque leen el evento, no el estado.
+
+### Alternativas consideradas
+
+1. Dejar la fecha solo en el evento y hacer que `/dsc-status` y el tablero recorran `events.jsonl`.
+2. Persistir `started_at` en el estado, además del evento.
+3. Guardar el inicio de cada versión en una lista dentro del estado.
+
+### Por qué se descartaron
+
+La 1 obliga a cada consumidor a recorrer un log append-only para responder "¿cuándo arrancó esto?",
+que es la pregunta más frecuente del tablero. El estado existe justamente para eso.
+
+La 3 duplica lo que `events.jsonl` ya guarda con más detalle, y crea dos historiales que hay que
+mantener coherentes.
+
+### Decisión tomada
+
+1. **`marcarInicio()` en `lib/cascade.mjs` hace las dos cosas en una sola llamada**: escribe
+   `started_at` y `started_by` en el estado y emite `STAGE_STARTED`. No se pueden hacer por
+   separado, que es como se llegó a tener el evento sin el campo.
+2. **Se llama antes de la primera pregunta al humano**, no al cerrar. Un comando interrumpido a
+   mitad de conversación conserva su inicio. Está en `contracts/command-anatomy.md` como paso 2b,
+   así aplica a todos los comandos sin repetirlo en cada uno.
+3. **`started_at` es de la versión en curso.** Regenerar una etapa lo resetea. El histórico
+   completo sigue en `events.jsonl`, que nunca se reescribe: una sola fuente de verdad por pregunta.
+4. **Fin es la última firma requerida, no la del PO.** `config/review-policy.yaml` puede pedir
+   varios roles y `approved_at` se escribe cuando firma el último. La fecha de un rol concreto no
+   se pierde: está en `approvals[rol].at`.
+5. **`cronologia` en `project-metrics.json`** lleva una fila por etapa con inicio, aprobación y
+   días. Se llama así y no `etapas` porque `gen-dashboard.mjs` hace `{ ...m, etapas }` con las
+   definiciones del workflow: un campo llamado `etapas` quedaría sobreescrito en silencio y el
+   tablero mostraría las etapas sin una sola fecha, sin que nada falle.
+6. **El chequeo 17 solo reporta lo verificablemente inconsistente, nunca lo ausente.** Etapa
+   `APPROVED` sin `approved_at`, fecha inválida, o inicio posterior a la aprobación. La **falta**
+   de `started_at` no se reporta: las etapas cerradas antes de este cambio no lo tienen, y un
+   chequeo que lo exigiera pondría en amarillo a todo proyecto ya aprobado el día que se agrega.
+
+### Motivo
+
+El valor del fix no era el dato, era la visibilidad. Una etapa en revisión hace nueve días es un
+problema, y no se ve mirando el estado: se ve mirando la fecha. Por eso el punto 2 —escribir antes
+de preguntar— importa más que el resto: sin eso, toda corrida interrumpida queda sin inicio y el
+tiempo de la etapa se calcula mal justo en los casos que hay que detectar.
+
+Y por eso el punto 6: un chequeo nuevo que pone amarillo lo que ya estaba cerrado enseña al equipo
+a ignorar el audit, que es la única verificación determinista que tiene el modelo.
+
+### Artefactos modificados
+
+`lib/cascade.mjs`, `lib/metrics.mjs`, `scripts/discovery-audit.mjs`, `scripts/smoke.mjs`,
+`dashboard/shell.html`, `contracts/state.md`, `contracts/command-anatomy.md`,
+`.claude/commands/dsc-status.md`.
+
+### Impacto en la cadena
+
+Ninguno sobre lo existente. El audit devuelve los mismos 0 errores y 14 avisos —el chequeo 17 no
+emite nada sobre `proyecto-1`, que no tiene `started_at` en ninguna etapa— y el smoke pasa los
+dieciocho pasos. En `proyecto-1` la cronología muestra las fechas de aprobación que ya existían y
+deja el inicio vacío, sin inventarlo.
