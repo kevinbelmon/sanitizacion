@@ -1,8 +1,1 @@
-proyectos:
-  - id: PRY-001
-    slug: proyecto-1
-    nombre: proyecto 1
-    cliente: cliente 1
-    status: DISCOVERY
-    created: 2026-08-12
-    owner: ejemplo owner 1
+proyectos: []

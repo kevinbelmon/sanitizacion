@@ -1,2 +1,21 @@
 # Permisos y preferencias de cada máquina, no del modelo.
 .claude/settings.local.json
+
+# Trabajo de clientes. Nunca sale de la máquina donde se hizo el discovery:
+# los borradores de ideas/ salen de minutas y mails de terceros.
+proyectos/
+
+# Salida generada. Se rehace con /dsc-dashboard y lleva adentro los datos
+# de todos los proyectos, que es justamente lo que no se publica.
+dashboard/data.js
+dashboard/index.html
+
+# Registro de sesiones de esta máquina.
+metrics/
+
+# Preferencias del editor, por maquina.
+.vscode/
+
+# Documentos de trabajo. Se comparten aparte, no por el repo.
+*.docx
+~$*
