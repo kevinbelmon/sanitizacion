@@ -15,7 +15,8 @@
 import { join } from 'node:path';
 import { existsSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { ROOT, proyectoDir, readYaml, writeYaml, reservarIds } from '../lib/store.mjs';
+import { ROOT, proyectoDir, readYaml, writeYaml, reservarIds, leerEventos } from '../lib/store.mjs';
+import { marcarInicio } from '../lib/cascade.mjs';
 
 const SLUG = 'smoke-test-descartable';
 const REG = ['ids', 'proyectos', 'capabilities', 'features'];
@@ -162,7 +163,127 @@ function main() {
   paso('audit sin errores', () => {
     const out = correr('discovery-audit.mjs', SLUG);
     debe(/0 error/.test(out), 'el audit encontro errores en un modelo que deberia estar sano');
-    return '15 checks';
+    return (out.match(/(\d+) checks/) ?? [, '?'])[1] + ' checks';
+  });
+
+  paso('marcarInicio escribe la fecha y emite el evento', () => {
+    const sp = join(P, 'metrics', 'workflow-status.json');
+    const antes = readFileSync(sp, 'utf8');
+    try {
+      const ts = marcarInicio(SLUG, 'estimation', { actor: 'smoke', command: '/dsc-estimate' });
+      debe(Boolean(ts), 'marcarInicio no devolvio timestamp');
+
+      const s = JSON.parse(readFileSync(sp, 'utf8'));
+      const e = s.stages.estimation;
+      debe(e.started_at === ts, 'started_at no quedo en el estado');
+      debe(e.started_by === 'smoke', 'started_by no quedo en el estado');
+      debe(e.status === 'IN_PROGRESS', `la etapa quedo en ${e.status} y no en IN_PROGRESS`);
+
+      const ev = leerEventos(SLUG).filter((x) => x.event === 'STAGE_STARTED' && x.stage === 'estimation');
+      debe(ev.length === 1, 'no se emitio STAGE_STARTED');
+      return 'estado y evento, en una sola llamada';
+    } finally {
+      writeFileSync(sp, antes, 'utf8');
+    }
+  });
+
+  paso('la cronologia calcula los dias de una etapa', () => {
+    const sp = join(P, 'metrics', 'workflow-status.json');
+    const antes = readFileSync(sp, 'utf8');
+    try {
+      const s = JSON.parse(antes);
+      s.stages.roadmap.started_at = '2026-08-01T00:00:00.000Z';
+      s.stages.roadmap.approved_at = '2026-08-04T00:00:00.000Z';
+      writeFileSync(sp, JSON.stringify(s, null, 2), 'utf8');
+
+      correr('gen-metrics.mjs', SLUG);
+      const m = JSON.parse(readFileSync(join(P, 'metrics', 'project-metrics.json'), 'utf8'));
+      const r = (m.cronologia ?? []).find((x) => x.id === 'roadmap');
+      debe(Boolean(r), 'la cronologia no trae la etapa roadmap');
+      debe(r.dias === 3, `calculo ${r.dias} dias en vez de 3`);
+      return `${r.dias} dias`;
+    } finally {
+      writeFileSync(sp, antes, 'utf8');
+      correr('gen-metrics.mjs', SLUG);
+    }
+  });
+
+  paso('el chequeo 17 detecta fechas invertidas', () => {
+    const sp = join(P, 'metrics', 'workflow-status.json');
+    const antes = readFileSync(sp, 'utf8');
+    try {
+      const s = JSON.parse(antes);
+      s.stages.roadmap.started_at = '2026-08-09T00:00:00.000Z';
+      s.stages.roadmap.approved_at = '2026-08-02T00:00:00.000Z';
+      writeFileSync(sp, JSON.stringify(s, null, 2), 'utf8');
+
+      let salida = '';
+      try { salida = correr('discovery-audit.mjs', SLUG); }
+      catch (err) { salida = String(err.stdout ?? ''); }
+
+      debe(/\[17\]/.test(salida), 'el chequeo 17 no emitio nada');
+      debe(/Arranco despues de haber sido aprobada/.test(salida), 'no detecto las fechas invertidas');
+      return 'inversion detectada';
+    } finally {
+      writeFileSync(sp, antes, 'utf8');
+    }
+  });
+
+  paso('el chequeo 17 ignora una etapa sin fecha de inicio', () => {
+    // El estado del smoke no tiene started_at en ninguna etapa: es el mismo caso
+    // que un proyecto aprobado antes de que el campo existiera.
+    let salida = '';
+    try { salida = correr('discovery-audit.mjs', SLUG); }
+    catch (err) { salida = String(err.stdout ?? ''); }
+    debe(!/\[17\]/.test(salida), 'el chequeo 17 opino sobre etapas sin fecha de inicio');
+    return 'sin ruido retroactivo';
+  });
+
+  paso('el chequeo 16 detecta un ciclo entre epicas', () => {
+    const rm = join(P, 'outputs', 'roadmap', 'roadmap.md');
+    const bueno = readFileSync(rm, 'utf8');
+    try {
+      // Un roadmap con ciclo (EP001 <-> EP002) y una referencia rota (EP099).
+      writeFileSync(rm, bueno.replace(
+        /\| EP001 \|.*\|\n/,
+        '| EP001 | Verificar la cadena de punta a punta | BC01 | Must Have | U01 | Q1 | EP002 |\n' +
+        '| EP002 | Segunda epica del caso de prueba | BC01 | Must Have | U01 | Q1 | EP001, EP099 |\n'
+      ), 'utf8');
+
+      let salida = '';
+      try { salida = correr('discovery-audit.mjs', SLUG); }
+      catch (err) { salida = String(err.stdout ?? ''); }
+
+      debe(/Ciclo de dependencias entre epicas/.test(salida), 'no detecto el ciclo entre epicas');
+      debe(/no esta en la tabla del roadmap/.test(salida), 'no detecto la referencia rota');
+      debe(/\[16\]/.test(salida), 'los hallazgos no salieron del chequeo 16');
+      return 'ciclo y referencia rota detectados';
+    } finally {
+      // Restaurar siempre: el paso siguiente asume el proyecto sano.
+      writeFileSync(rm, bueno, 'utf8');
+    }
+  });
+
+  paso('el chequeo 16 ignora un roadmap sin la columna', () => {
+    const rm = join(P, 'outputs', 'roadmap', 'roadmap.md');
+    const bueno = readFileSync(rm, 'utf8');
+    try {
+      // Roadmap de seis columnas, como los generados antes de que existiera la
+      // columna: el chequeo no tiene que opinar sobre el.
+      writeFileSync(rm, bueno
+        .replace(' | Depende de |', ' |')
+        .replace('|---|---|---|---|---|---|---|', '|---|---|---|---|---|---|')
+        .replace(/(\| EP001 \|.*\|) — \|/, '$1'), 'utf8');
+
+      let salida = '';
+      try { salida = correr('discovery-audit.mjs', SLUG); }
+      catch (err) { salida = String(err.stdout ?? ''); }
+
+      debe(!/\[16\]/.test(salida), 'el chequeo 16 opino sobre un roadmap que no declara dependencias');
+      return 'opt-in respetado';
+    } finally {
+      writeFileSync(rm, bueno, 'utf8');
+    }
   });
 
   paso('calcular metricas', () => {

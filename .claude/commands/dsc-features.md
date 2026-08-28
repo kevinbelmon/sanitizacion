@@ -81,6 +81,29 @@ Por cada feature:
 - Sin placeholders
 - Las dependencias entre features no tienen ciclos
 - El ID viene del registro, no de contar archivos
+- **El `depends_on` de cada feature hereda la dependencia de su épica.** Si la épica de la feature
+  depende de otra épica, toda feature de la épica dependida que la habilite va en `depends_on`.
+  Si la épica dependida no tiene features en este release, la dependencia queda declarada en
+  `## RESTRICCIONES TÉCNICAS` como espera externa, con el release donde se resuelve
+
+## Al presentar las features
+
+Después de escribirlas, mostrá qué features quedan bloqueadas por otra y cuáles pueden arrancar ya.
+Es lo primero que va a preguntar el equipo de desarrollo:
+
+```
+De las 8 features, 5 pueden arrancar en paralelo:
+
+  F001 F002 F004 F006 F008   sin dependencias
+
+  F003 espera a F001
+  F005 espera a F002 y F003
+  F007 espera a EP003 — que no está en este release (se resuelve en R2)
+
+F007 se puede especificar ahora, pero no se puede terminar hasta R2.
+```
+
+Si ninguna feature depende de otra, decilo: **las 8 pueden arrancar en paralelo.**
 
 ## Cierre
 

@@ -48,6 +48,7 @@
   .step { flex:1 1 100px; min-width:100px; padding:8px 9px; border-radius:6px; border:1px solid var(--line); background:var(--bg); font-size:11.5px; }
   .step .n { font-weight:600; display:block; }
   .step .s { color:var(--muted); font-size:10.5px; }
+  .step .f { display:block; color:var(--muted); font-size:10px; margin-top:3px; opacity:.85; }
   .step[data-e="APPROVED"] { border-color:var(--green); } .step[data-e="APPROVED"] .s { color:var(--green); }
   .step[data-e="STALE"], .step[data-e="CHANGES_REQUESTED"] { border-color:var(--yellow); }
   .step[data-e="STALE"] .s, .step[data-e="CHANGES_REQUESTED"] .s { color:var(--yellow); }
@@ -115,6 +116,19 @@
     var d = new Date(iso);
     return isNaN(d) ? '—' : d.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
   }
+  /* Fecha corta: la pregunta de un tablero de etapas es de dias, no de horas. */
+  function fechaCorta(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    return isNaN(d) ? '—' : d.toLocaleDateString('es-AR', { day:'2-digit', month:'short' });
+  }
+  /* "mismo dia" en vez de "0 dias": una etapa que arranco y cerro hoy no tardo cero. */
+  function dias(n) {
+    if (n === null || n === undefined) return '';
+    if (n < 1) return 'mismo día';
+    var r = Math.round(n);
+    return r + (r === 1 ? ' día' : ' días');
+  }
   function tabla(cols, filas) {
     var w = el('div','scroll'), t = document.createElement('table');
     var th = document.createElement('thead'), tr = document.createElement('tr');
@@ -178,12 +192,28 @@
       c.appendChild(el('div','pct', p.progreso.aprobadas + ' de ' + p.progreso.total + ' etapas aprobadas (' + p.progreso.valor + '%)'));
 
       var chain = el('div','chain');
+      /* Fechas por etapa. Vienen en `cronologia` y no en `etapas` porque
+         gen-dashboard.mjs sobreescribe `etapas` con las definiciones del workflow. */
+      var crono = {};
+      (p.cronologia || []).forEach(function (x) { crono[x.id] = x; });
       (p.etapas || []).forEach(function (e) {
         var fila = p.artefactos.filter(function(a){ return a.etapa === e.id; });
         var est = fila.length ? (fila.every(function(a){return a.estado==='APPROVED';}) ? 'APPROVED' : fila[0].estado) : 'PENDING';
         var s = attr(el('div','step'), 'data-e', est);
         s.appendChild(el('span','n', e.name || e.id));
         s.appendChild(el('span','s', est.toLowerCase().replace(/_/g,' ')));
+        var k = crono[e.id];
+        if (k && (k.started_at || k.approved_at)) {
+          /* Etapa cerrada: inicio → aprobacion y cuanto llevo.
+             Etapa en curso: solo el inicio, que es el dato que importa.
+             Etapa vieja sin `started_at`: se muestra la aprobacion sola. No se
+             inventa un inicio — ver contracts/state.md. */
+          var txt = k.approved_at
+            ? fechaCorta(k.started_at) + ' → ' + fechaCorta(k.approved_at)
+            : 'desde ' + fechaCorta(k.started_at);
+          var d = dias(k.dias);
+          s.appendChild(el('span','f', d ? txt + ' · ' + d : txt));
+        }
         chain.appendChild(s);
       });
       c.appendChild(chain);

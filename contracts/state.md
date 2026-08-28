@@ -15,11 +15,11 @@ Ruta: `proyectos/<slug>/metrics/workflow-status.json`
   "updated_by": "Ana Gomez",
   "current_stage": "features",
   "stages": {
-    "iniciativa": { "status": "APPROVED",  "version": 1, "hash": "sha256:…", "approved_at": "…", "approvals": ["Product Owner"] },
-    "vision":     { "status": "APPROVED",  "version": 2, "hash": "sha256:…", "iterations": 1 },
-    "roadmap":    { "status": "STALE",     "version": 1, "stale_since": "…", "stale_cause": "vision v2" },
+    "iniciativa": { "status": "APPROVED",  "version": 1, "hash": "sha256:…", "started_at": "…", "started_by": "Ana Gomez", "approved_at": "…", "approvals": { "Product Owner": { "by": "…", "at": "…", "verdict": "approved" } } },
+    "vision":     { "status": "APPROVED",  "version": 2, "hash": "sha256:…", "started_at": "…", "approved_at": "…", "iterations": 1 },
+    "roadmap":    { "status": "STALE",     "version": 1, "started_at": "…", "approved_at": "…", "stale_since": "…", "stale_cause": "vision v2" },
     "release":    { "status": "PENDING" },
-    "features":   { "status": "IN_REVIEW", "cursor": "F003", "pending_roles": ["QA"] },
+    "features":   { "status": "IN_REVIEW", "started_at": "…", "cursor": "F003", "pending_roles": ["QA"] },
     "estimation": { "status": "PENDING" },
     "handoff":    { "status": "PENDING" }
   },
@@ -45,6 +45,33 @@ Ruta: `proyectos/<slug>/metrics/workflow-status.json`
 | `FAILED` | El comando falló. `last_error` dice por qué | No, pero reanudable |
 
 Un artefacto `STALE` sigue siendo legible. `STALE` impide avanzar, no leer.
+
+## Fechas de una etapa
+
+Cada etapa —y cada item de una etapa con items— lleva dos fechas. Son las que responden
+"¿cuánto tardó esto?" sin recorrer el log de eventos.
+
+| Campo | Cuándo se escribe | Quién |
+|---|---|---|
+| `started_at` · `started_by` | Al arrancar el comando que genera la etapa, **antes de la primera pregunta** | `marcarInicio()` de `lib/cascade.mjs`, que además emite `STAGE_STARTED` |
+| `approved_at` | Cuando firma el **último rol requerido**, no el primero | `scripts/approve.mjs`, junto con `approvals` |
+
+`approvals` guarda además la fecha de cada firma por separado
+(`approvals["Product Owner"].at`), así que la fecha en que firmó un rol concreto no se pierde
+cuando firma el siguiente.
+
+**`started_at` es de la versión en curso.** Regenerar una etapa lo resetea: es la fecha en que
+arrancó el trabajo que produjo la versión que está en disco. El histórico completo vive en
+`events.jsonl`, que nunca se reescribe — si hace falta el primer inicio de todos, sale de ahí.
+Una sola fuente de verdad por pregunta.
+
+**Escribirlo antes de preguntar, no después.** Un comando que se interrumpe a mitad de una
+conversación tiene que conservar su inicio: si la fecha se escribiera al terminar, toda corrida
+interrumpida quedaría sin inicio y el tiempo de la etapa se calcularía mal.
+
+**Ausencia no es error.** Una etapa aprobada antes de que estos campos existieran no los tiene.
+El chequeo 17 lo reporta como aviso y solo sobre etapas que arrancaron después: un dato que no
+se pudo escribir no es una inconsistencia del modelo.
 
 ## Reglas
 

@@ -87,9 +87,9 @@ horizon: 12 meses
 
 ## Tabla del roadmap
 
-| Épica | Objetivo | Capacidad | Prioridad | Usuarios | Trimestre |
-|---|---|---|---|---|---|
-| EP001 | Verificar la cadena de punta a punta | BC01 | Must Have | U01 | Q1 |
+| Épica | Objetivo | Capacidad | Prioridad | Usuarios | Trimestre | Depende de |
+|---|---|---|---|---|---|---|
+| EP001 | Verificar la cadena de punta a punta | BC01 | Must Have | U01 | Q1 | — |
 
 ## Épicas
 

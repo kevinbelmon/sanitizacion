@@ -16,6 +16,7 @@ import { existsSync } from 'node:fs';
 import { ROOT, metricsDir, writeJson, sha256 } from '../lib/store.mjs';
 import { cargarModelo, extraerIds, LIMITES, PLACEHOLDERS } from '../lib/registry.mjs';
 import { ordenEtapas, rolesRequeridos, estadoDerivado } from '../lib/cascade.mjs';
+import { leerTablaRoadmap, resolverDeps, ciclosDeps, numTrimestre } from '../lib/roadmap.mjs';
 
 const ERROR = 'ERROR';
 const WARN = 'WARN';
@@ -455,13 +456,116 @@ function entradaDe(p, a) {
 }
 const estadoDe = (p, a) => entradaDe(p, a)?.status ?? 'PENDING';
 
-const CHECKS = [c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15];
+// ── 16 · Dependencias entre epicas del roadmap ──────────────────────────────
+/**
+ * Espejo del chequeo 4, que hace lo mismo con features. Se apoya en la columna
+ * "Depende de" de la tabla del roadmap.
+ *
+ * Es opt-in por presencia de la columna: un roadmap generado antes de que la
+ * columna existiera no declara dependencias, y este chequeo no opina sobre el.
+ * Sin eso, agregar el chequeo pondria rojo retroactivamente a todo proyecto ya
+ * aprobado — que estaba verde y no cambio.
+ */
+function c16(m) {
+  const out = [];
+  for (const p of m.proyectos) {
+    const art = p.artefactos.find((a) => a.tipo === 'roadmap');
+    if (!art) continue;
+
+    const tabla = leerTablaRoadmap(art.contenido);
+    if (!tabla || !tabla.tieneColumnaDeps) continue;
+
+    const filas = resolverDeps(tabla.filas);
+    const porId = new Map(filas.map((f) => [f.epica, f]));
+
+    for (const f of filas) {
+      for (const d of f.depende) {
+        if (d.falta) {
+          out.push(h(16, ERROR, `${p.slug}/roadmap/${f.epica}`,
+            `Depende de ${d.id}, que no esta en la tabla del roadmap.`,
+            'Corregir el ID de la columna "Depende de", o agregar la epica que falta.'));
+          continue;
+        }
+        const dep = porId.get(d.id);
+        const qf = numTrimestre(f.trimestre);
+        const qd = numTrimestre(dep.trimestre);
+        if (qf && qd && qf < qd) {
+          out.push(h(16, ERROR, `${p.slug}/roadmap/${f.epica}`,
+            `Esta en ${f.trimestre} pero depende de ${d.id}, que esta en ${dep.trimestre}.`,
+            'Mover la epica a un trimestre posterior, o adelantar su dependencia.'));
+        }
+      }
+    }
+
+    for (const ciclo of ciclosDeps(filas)) {
+      out.push(h(16, ERROR, `${p.slug}/roadmap`,
+        `Ciclo de dependencias entre epicas: ${ciclo}.`,
+        'Romper el ciclo: alguna epica tiene que poder empezar primero.'));
+    }
+  }
+  return out;
+}
+
+// ── 17 · Coherencia de las fechas de etapa ──────────────────────────────────
+/**
+ * Verifica `started_at` y `approved_at` en el estado. Ver contracts/state.md.
+ *
+ * Solo reporta lo que es **verificablemente inconsistente**, nunca lo que falta:
+ * las etapas aprobadas antes de que el modelo guardara `started_at` no lo tienen,
+ * y eso no es un defecto del proyecto. Un chequeo que exigiera el campo pondria en
+ * amarillo a todo proyecto ya cerrado el dia que se agrega, y el equipo aprenderia
+ * a ignorar el audit en la primera semana.
+ *
+ * Lo que si es un defecto: una etapa aprobada sin fecha de aprobacion —approve.mjs
+ * siempre la escribe, asi que su ausencia significa que alguien edito el estado a
+ * mano— y una fecha de inicio posterior a la de aprobacion.
+ */
+function c17(m) {
+  const out = [];
+  const iso = (v) => typeof v === 'string' && !Number.isNaN(Date.parse(v));
+
+  for (const p of m.proyectos) {
+    const stages = p.estado?.stages ?? {};
+
+    const revisar = (entrada, etiqueta) => {
+      if (!entrada) return;
+      const { status, started_at: ini, approved_at: apr } = entrada;
+
+      if (status === 'APPROVED' && !apr) {
+        out.push(h(17, WARN, `${p.slug}/${etiqueta}`,
+          'Esta APPROVED pero no tiene fecha de aprobacion.',
+          'El estado se edito a mano: /dsc-approve siempre escribe approved_at. Volver a aprobar.'));
+      }
+      for (const [campo, valor] of [['started_at', ini], ['approved_at', apr]]) {
+        if (valor !== undefined && valor !== null && !iso(valor)) {
+          out.push(h(17, WARN, `${p.slug}/${etiqueta}`,
+            `El campo ${campo} no es una fecha valida: ${valor}.`,
+            'Corregir el estado, o regenerar la etapa.'));
+        }
+      }
+      if (iso(ini) && iso(apr) && Date.parse(ini) > Date.parse(apr)) {
+        out.push(h(17, WARN, `${p.slug}/${etiqueta}`,
+          'Arranco despues de haber sido aprobada.',
+          'Las fechas estan invertidas. Revisar el estado: alguna escritura quedo fuera de orden.'));
+      }
+    };
+
+    for (const [id, s] of Object.entries(stages)) {
+      if (s.items) for (const [itemId, it] of Object.entries(s.items)) revisar(it, `${id}/${itemId}`);
+      else revisar(s, id);
+    }
+  }
+  return out;
+}
+
+const CHECKS = [c01, c02, c03, c04, c05, c06, c07, c08, c09, c10, c11, c12, c13, c14, c15, c16, c17];
 
 const NOMBRES = {
   1: 'Registro contra archivos', 2: 'IDs huerfanos', 3: 'Integridad de la cadena',
   4: 'Dependencias', 5: 'Estimacion', 6: 'Aprobaciones completas', 7: 'Handoff',
   8: 'Placeholders', 9: 'Cascada', 10: 'Unicidad de IDs', 11: 'Tamano',
   12: 'Deriva de hash', 13: 'Colision de claims', 14: 'Releases vencidos', 15: 'Secretos',
+  16: 'Dependencias entre epicas', 17: 'Fechas de etapa',
 };
 
 function main() {
@@ -477,7 +581,7 @@ function main() {
   const errores = hallazgos.filter((x) => x.sev === ERROR);
   const avisos = hallazgos.filter((x) => x.sev === WARN);
 
-  console.log(`Audit del Discovery Model — ${modelo.proyectos.length} proyecto(s), 15 checks\n`);
+  console.log(`Audit del Discovery Model — ${modelo.proyectos.length} proyecto(s), ${CHECKS.length} checks\n`);
 
   if (!hallazgos.length) {
     console.log('Sin hallazgos. El modelo es consistente.');

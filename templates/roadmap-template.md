@@ -28,11 +28,17 @@ Tres o cuatro líneas: qué se va a construir en el horizonte y en qué orden.
 
 Vista consolidada para stakeholders. Es lo primero que se lee.
 
-| Épica | Objetivo | Capacidad | Prioridad | Usuarios | Trimestre |
-|---|---|---|---|---|---|
-| EP001 | | BC01 | Must | U01, U03 | Q1 |
-| EP002 | | BC02 | Must | U01 | Q1 |
-| EP003 | | BC03 | Should | U02 | Q2 |
+La columna **Depende de** lleva los IDs de las épicas de las que esta épica depende, separados
+por coma, o `—` si no depende de ninguna. Es dependencia épica→épica: las dependencias externas
+o estratégicas van en la sección "Dependencias estratégicas" con ID `DE-nnn`, no acá.
+
+Va **última y no se reordena**: el generador de la vista ejecutiva lee esta tabla por posición.
+
+| Épica | Objetivo | Capacidad | Prioridad | Usuarios | Trimestre | Depende de |
+|---|---|---|---|---|---|---|
+| EP001 | | BC01 | Must | U01, U03 | Q1 | — |
+| EP002 | | BC02 | Must | U01 | Q1 | EP001 |
+| EP003 | | BC03 | Should | U02 | Q2 | EP002 |
 
 ---
 
@@ -52,7 +58,8 @@ Un bloque por épica, con este formato exacto.
 
 **Prioridad** · Must Have | Should Have | Could Have
 
-**Dependencias** · ninguna | EP002
+**Dependencias** · ninguna | EP002 *(tiene que coincidir con la columna "Depende de" de la tabla,
+que es la que lee el generador. Acá se explica por qué depende; ahí se declara de qué)*
 
 **Riesgos** · RE-001, o riesgos propios de la épica
 

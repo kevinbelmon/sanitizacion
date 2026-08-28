@@ -21,7 +21,7 @@ nombró ninguno, mostrá el resumen de todos y ofrecé profundizar.
 
 ## Paso 2 — Detectar problemas
 
-Antes de reportar, verificá tres cosas:
+Antes de reportar, verificá cuatro cosas:
 
 **Desincronización.** Si el campo `updated` del estado es más nuevo que la fecha de modificación
 del archivo en disco, la carpeta sincronizada puede estar desactualizada:
@@ -38,6 +38,14 @@ Si pasaron más de 24 horas, marcalo como probablemente abandonado. **Avisa, no 
 **Artefactos `STALE`.** Si alguno quedó obsoleto porque cambió un antecesor, decilo con la causa:
 `roadmap está STALE porque vision pasó a v2`.
 
+**Bloqueos por dependencia.** Leé la salida del chequeo 16 en `metrics/audit-result.json` — no la
+recalcules. Si hay dependencias entre épicas que cruzan de trimestre o apuntan a algo inexistente,
+reportalas: son la causa más común de que algo esté esperando sin que se vea por qué.
+
+```
+EP004 no puede terminar hasta que salga EP003, que está en Q2.
+```
+
 ## Paso 3 — Reportar
 
 Formato, en lenguaje de negocio:
@@ -45,10 +53,10 @@ Formato, en lenguaje de negocio:
 ```
 <Nombre del proyecto>  ·  <PRY-nnn>
 
-  Iniciativa   ✅ aprobada          v1
-  Visión       ✅ aprobada          v2
+  Iniciativa   ✅ aprobada          v1   12-ago → 12-ago   (mismo día)
+  Visión       ✅ aprobada          v2   12-ago → 12-ago   (mismo día)
   Roadmap      ⚠️  obsoleta          la visión cambió a v2
-  Release      ⬜ pendiente
+  Release      🔵 en curso                arrancó 26-ago   (hace 2 días)
   Features     ⬜ pendiente
 
   Progreso     2 de 7 etapas aprobadas
@@ -63,6 +71,18 @@ Formato, en lenguaje de negocio:
 pedidos · ❌ rechazado o fallado · ⬜ pendiente.
 
 Cuando una etapa espera firmas, decí **qué roles faltan**, no solo que espera.
+
+**Fechas.** Salen del estado, no de `events.jsonl`: `started_at` y `approved_at` de cada etapa.
+
+- Etapa aprobada → `inicio → aprobación`, más cuánto llevó. Si arrancó y se aprobó el mismo día,
+  escribí `(mismo día)`: es más honesto que `0 días`.
+- Etapa en curso, en revisión o esperando firma → `arrancó <fecha>` y **hace cuánto**. Es el dato
+  que dispara la conversación: una etapa en revisión hace nueve días es un problema, y no se ve
+  mirando solo el estado.
+- Etapa sin `started_at` → no muestres nada. Son etapas aprobadas antes de que el modelo guardara
+  la fecha. **No inventes una** y no lo reportes como problema.
+
+Fechas en formato corto y en español (`12-ago`). La hora no aporta: la pregunta es de días.
 
 ## Paso 4 — Regenerar el dashboard
 

@@ -34,10 +34,34 @@ Recomiendo empezar por R1: los siguientes se van a ajustar con lo que
 aprendamos ejecutando el primero.
 ```
 
+## Al seleccionar: mostrar de qué depende cada épica
+
+Antes de escribir el release, mostrá el estado de dependencias de las épicas seleccionadas. La
+columna **Depende de** de la tabla del roadmap es la fuente. Lo que le importa al PO es una sola
+cosa: **si la dependencia entra en este release o queda afuera.**
+
+```
+R1 incluye EP001, EP002 y EP004.
+
+  EP001   no depende de nada
+  EP002   depende de EP001 — dentro de este release
+  EP004   depende de EP003 — FUERA de este release (planificada en Q2 / R2)
+
+EP004 no se puede terminar hasta que salga R2. Tres opciones: la sacamos
+de R1, traemos EP003 a R1, o la dejamos sabiendo que queda bloqueada.
+```
+
+Presentá las opciones con `AskUserQuestion` cuando haya al menos una dependencia fuera del release.
+Si todas las dependencias caen dentro, decilo en una línea y seguí: **el release es autocontenido.**
+
+No lo dejes solo como verificación silenciosa. Una dependencia que cruza el borde del release es una
+decisión de negocio, y se toma con el PO mirándola.
+
 ## Verificaciones antes de escribir
 
 - Toda épica incluida existe en el roadmap aprobado
 - Ninguna épica va antes que aquello de lo que depende. Si la dependencia queda fuera del release, está indicado dónde se resuelve
+- Las dependencias de cada épica se leyeron de la columna **Depende de** del roadmap, no del texto del bloque
 - Las prioridades del roadmap se respetan: Must antes que Should, Should antes que Could
 - Los usuarios impactados se propagaron tal cual desde cada épica
 - Los criterios de finalización son verificables — alguien tiene que poder marcarlos ✅ o ❌

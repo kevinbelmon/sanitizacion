@@ -30,6 +30,24 @@ Si ya está tomado por otra persona, informalo con nombre y desde cuándo, y pre
 **Avisa, no impide** — es un lock cooperativo, no un candado. Si el claim tiene más de 24 horas,
 señalalo como probablemente abandonado.
 
+## 2b. Marcar el inicio
+
+Antes de generar nada y **antes de la primera pregunta al humano**:
+
+```js
+marcarInicio(slug, etapa, { itemId, actor, command })   // lib/cascade.mjs
+```
+
+Escribe `started_at` y `started_by` en el estado y emite `STAGE_STARTED` en una sola operación.
+Las dos cosas van juntas: el evento solo sirve para métricas y hay que recorrer el log entero
+para leerlo; el estado es lo que muestran `/dsc-status` y el tablero.
+
+Va antes de preguntar porque un comando interrumpido a mitad de conversación tiene que conservar
+su fecha de inicio. Si se escribiera al cerrar, toda corrida interrumpida quedaría sin inicio.
+
+Regenerar una etapa **resetea** `started_at`: es el inicio de la versión que queda en disco. El
+histórico completo está en `events.jsonl`. Ver `contracts/state.md` → "Fechas de una etapa".
+
 ## 3. Contexto acotado
 
 Leé **solo** el artefacto antecesor y el template. Las secciones que podés consumir de cada

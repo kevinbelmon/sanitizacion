@@ -51,6 +51,27 @@ Usá `AskUserQuestion`. Si el PO elige otro orden:
 Es el único punto del ciclo donde el modelo propone y el humano dispone sobre una decisión de
 proyecto. Vale la pena hacerlo bien.
 
+## Al cerrar: qué dependencias generan espera
+
+Después de escribir el roadmap, cerrá diciendo qué dependencias **cruzan de trimestre**, que son
+las únicas que cuestan tiempo de calendario. Las de dentro del mismo trimestre son orden, no espera:
+
+```
+Dependencias que generan espera entre trimestres:
+
+  EP003 (Q2) espera a EP001 (Q1)
+  EP005 (Q3) espera a EP003 (Q2)
+
+Las demás dependencias caen dentro del mismo trimestre: definen el orden
+de trabajo, no una espera de calendario.
+
+Quedan dibujadas en roadmap.html con una flecha ↗, para que se vean sin
+tener que correr ningún comando.
+```
+
+Si ninguna cruza de trimestre, decilo: **no hay esperas entre trimestres**. Es información buena
+y hay que darla, no omitirla por ser una buena noticia.
+
 ## Verificaciones antes de escribir
 
 - Toda épica está asociada a al menos un objetivo estratégico (`OE-nnn`) de la Visión
@@ -59,6 +80,11 @@ proyecto. Vale la pena hacerlo bien.
 - No hay ciclos de dependencia
 - Las dependencias (`DE-nnn`) y riesgos (`RE-nnn`) estratégicos de la Visión están heredados
 - La tabla del roadmap está completa: es lo que lee el generador de HTML
+- La columna **Depende de** de la tabla está llena para toda épica: los IDs de las épicas de las
+  que depende, separados por coma, o `—` si no depende de ninguna. Es la columna **última** de la
+  tabla y no se reordena: el generador la lee por posición. Tiene que coincidir con el campo
+  `**Dependencias**` del bloque de cada épica — la tabla declara de qué depende, el bloque explica
+  por qué. Una dependencia a una épica que no existe en la tabla es un error, no un aviso
 
 ## Generar la vista
 

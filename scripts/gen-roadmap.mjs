@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { readFileSync, existsSync } from 'node:fs';
 import { ROOT, proyectoDir, writeAtomic } from '../lib/store.mjs';
 import { shellHtml, moduloDatos } from '../lib/render.mjs';
+import { leerTablaRoadmap, resolverDeps } from '../lib/roadmap.mjs';
 
 const PRIORIDADES = { must: 'must', should: 'should', could: 'could' };
 
@@ -35,32 +36,19 @@ function leerFrontmatter(texto) {
   return out;
 }
 
-/** Extrae las filas de la tabla que sigue al encabezado "## Tabla del roadmap". */
+/**
+ * Envoltorio fino sobre lib/roadmap.mjs: el parser es compartido con el audit.
+ * Aca solo se decide que hacer cuando falta o esta vacia, que en un generador de
+ * vista es fallar ruidosamente: un roadmap a medias induce mas error que ninguno.
+ */
 function leerTabla(texto) {
-  const i = texto.indexOf('## Tabla del roadmap');
-  if (i === -1) salir('El roadmap no tiene la seccion "## Tabla del roadmap". Regeneralo con /dsc-roadmap.');
-
-  const filas = [];
-  for (const linea of texto.slice(i).split('\n').slice(1)) {
-    const t = linea.trim();
-    if (t.startsWith('##')) break;
-    if (!t.startsWith('|')) continue;
-    const celdas = t.split('|').slice(1, -1).map((c) => c.trim());
-    if (celdas.length < 6) continue;
-    if (/^-+$/.test(celdas[0].replace(/[: ]/g, ''))) continue;   // separador
-    if (/^épica$/i.test(celdas[0]) || /^epica$/i.test(celdas[0])) continue;  // encabezado
-    const [epica, objetivo, capacidad, prioridad, usuarios, trimestre] = celdas;
-    if (!epica) continue;
-    filas.push({
-      epica, objetivo, capacidad, trimestre,
-      prioridad,
-      clase: PRIORIDADES[prioridad.toLowerCase().split(' ')[0]] ?? 'could',
-      usuarios: usuarios.split(',').map((u) => u.trim()).filter(Boolean),
-    });
-  }
-
-  if (!filas.length) salir('La tabla del roadmap esta vacia. No hay nada que dibujar.');
-  return filas;
+  const tabla = leerTablaRoadmap(texto);
+  if (!tabla) salir('El roadmap no tiene la seccion "## Tabla del roadmap". Regeneralo con /dsc-roadmap.');
+  if (!tabla.filas.length) salir('La tabla del roadmap esta vacia. No hay nada que dibujar.');
+  return tabla.filas.map((f) => ({
+    ...f,
+    clase: PRIORIDADES[f.prioridad.toLowerCase().split(' ')[0]] ?? 'could',
+  }));
 }
 
 const ESTILOS = `
@@ -90,6 +78,14 @@ const ESTILOS = `
     font-size: 10.5px; padding: 2px 7px; border-radius: 20px;
     border: 1px solid var(--line); color: var(--muted); background: var(--bg);
   }
+  .ep .dep { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; margin-top: 8px; }
+  .ep .dep-lbl {
+    font-size: 10px; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); margin-right: 1px;
+  }
+  .dep-tag { border-style: dashed; }
+  .dep-tag.cruza { border-color: var(--warn); color: var(--warn); border-style: solid; }
+  .dep-tag.falta { border-color: var(--bad); color: var(--bad); border-style: solid; }
   .leyenda { display: flex; gap: 18px; flex-wrap: wrap; margin: 26px 0 0; font-size: 12.5px; color: var(--muted); }
   .leyenda span { display: flex; align-items: center; gap: 6px; }
   .sw { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
@@ -127,6 +123,18 @@ const SCRIPT = `<script>
       tags.appendChild(el('span', 'tag', e.prioridad));
       e.usuarios.forEach(function (u) { tags.appendChild(el('span', 'tag', u)); });
       c.appendChild(tags);
+      if (e.depende && e.depende.length) {
+        var dep = el('div', 'dep');
+        dep.appendChild(el('span', 'dep-lbl', 'depende de'));
+        e.depende.forEach(function (d) {
+          var clase = 'tag dep-tag';
+          var texto = d.id;
+          if (d.falta) { clase += ' falta'; texto += ' ?'; }
+          else if (d.cruza) { clase += ' cruza'; texto += ' \\u2197'; }
+          dep.appendChild(el('span', clase, texto));
+        });
+        c.appendChild(dep);
+      }
       col.appendChild(c);
     });
     if (!q.epicas.length) col.appendChild(el('div', 'tag', 'sin épicas'));
@@ -151,13 +159,18 @@ function main() {
   const filas = leerTabla(texto);
 
   const orden = [...new Set(filas.map((f) => f.trimestre).filter(Boolean))].sort();
+
+  /* Resolver las dependencias contra el propio roadmap: el audit hace lo mismo
+     con la misma funcion, asi la vista y la verificacion no pueden discrepar. */
+  const epicas = resolverDeps(filas);
+
   const datos = {
     proyecto: fm.proyecto ?? slug,
     version: fm.version ?? '1',
     horizonte: fm.horizon ?? 'no declarado',
     generado: new Date().toISOString(),
-    epicas: filas,
-    trimestres: orden.map((q) => ({ nombre: q, epicas: filas.filter((f) => f.trimestre === q) })),
+    epicas,
+    trimestres: orden.map((q) => ({ nombre: q, epicas: epicas.filter((f) => f.trimestre === q) })),
   };
 
   const cuerpo = `<header>
@@ -170,6 +183,8 @@ function main() {
     <span><i class="sw" style="background:var(--bad)"></i> Must Have</span>
     <span><i class="sw" style="background:var(--warn)"></i> Should Have</span>
     <span><i class="sw" style="background:var(--accent)"></i> Could Have</span>
+    <span><i class="sw" style="background:var(--warn)"></i> &#8599; la dependencia está en otro trimestre</span>
+    <span><i class="sw" style="background:var(--bad)"></i> ? la dependencia no existe en el roadmap</span>
   </div>
 </main>
 <footer id="pie"></footer>`;
