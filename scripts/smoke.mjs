@@ -13,10 +13,11 @@
  */
 
 import { join } from 'node:path';
-import { existsSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync, copyFileSync, readFileSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { ROOT, proyectoDir, readYaml, writeYaml, reservarIds, leerEventos } from '../lib/store.mjs';
 import { marcarInicio } from '../lib/cascade.mjs';
+import { sanear } from '../lib/sanitize.mjs';
 
 const SLUG = 'smoke-test-descartable';
 const REG = ['ids', 'proyectos', 'capabilities', 'features'];
@@ -91,6 +92,38 @@ function main() {
     correr('new-proyecto.mjs', 'Smoke Test Descartable', '--owner', 'smoke');
     debe(existsSync(join(P, 'metrics', 'workflow-status.json')), 'no se creo el estado');
     return SLUG;
+  });
+
+  paso('sanitize limpia unicode invisible y ANSI en ideas/', () => {
+    const sucio = join(P, 'ideas', 'minuta-sucia.md');
+    const visible = 'Recepcion tarda 45 minutos.\nSiguiente linea.';
+    // RLO + ZWSP + CSI: el caso que un LLM no ve, y el orden ANSI-antes-de-Unicode.
+    const payload = `\u202ERecepcion\u200B tarda 45 minutos.\n\x1B[31mSiguiente linea.\x1B[0m`;
+    writeFileSync(sucio, payload, 'utf8');
+    try {
+      const lib = sanear(payload);
+      debe(lib.limpio === visible, `lib dejo ${JSON.stringify(lib.limpio)}`);
+      debe(lib.cantidadAnsi === 2, `conto ${lib.cantidadAnsi} ANSI, esperaba 2`);
+      debe(lib.hallazgosUnicode.some((h) => h.nombre.includes('bidi')), 'no reporto bidi');
+      debe(lib.hallazgosUnicode.some((h) => h.nombre === 'zero-width'), 'no reporto zero-width');
+      debe(!lib.limpio.includes('[31m'), 'el orden ANSI/Unicode dejo basura visible');
+
+      const reporte = JSON.parse(correr('sanitize.mjs', SLUG, '--json'));
+      const r = reporte.archivos.find((a) => a.archivo.endsWith('minuta-sucia.md'));
+      debe(Boolean(r?.tuvoHallazgos), 'el CLI no reporto hallazgos');
+      debe(r.escrito === false, 'escribio el archivo sin --write');
+      debe(readFileSync(sucio, 'utf8') === payload, 'modifico ideas/ sin --write');
+
+      correr('sanitize.mjs', SLUG, '--write');
+      debe(readFileSync(sucio, 'utf8') === visible, '--write no dejo el texto visible intacto');
+
+      const despues = JSON.parse(correr('sanitize.mjs', SLUG, '--json'));
+      const r2 = despues.archivos.find((a) => a.archivo.endsWith('minuta-sucia.md'));
+      debe(!r2?.tuvoHallazgos, 'siguio reportando hallazgos despues de limpiar');
+      return 'detecta, no escribe sin --write, limpia con --write';
+    } finally {
+      try { unlinkSync(sucio); } catch { /* el restore borra el proyecto entero */ }
+    }
   });
 
   paso('escribir la cadena de artefactos', () => {
@@ -245,7 +278,7 @@ function main() {
     try {
       // Un roadmap con ciclo (EP001 <-> EP002) y una referencia rota (EP099).
       writeFileSync(rm, bueno.replace(
-        /\| EP001 \|.*\|\n/,
+        /\| EP001 \|.*\|\r?\n/,
         '| EP001 | Verificar la cadena de punta a punta | BC01 | Must Have | U01 | Q1 | EP002 |\n' +
         '| EP002 | Segunda epica del caso de prueba | BC01 | Must Have | U01 | Q1 | EP001, EP099 |\n'
       ), 'utf8');

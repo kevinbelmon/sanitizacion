@@ -1,4 +1,9 @@
 global:
-  PRY: 0
-  DEC: 9
-proyectos: {}
+  PRY: 6
+  DEC: 10
+proyectos:
+  prueba-saneamiento:
+    U: 2
+    OE: 1
+    BC: 2
+    EP: 2

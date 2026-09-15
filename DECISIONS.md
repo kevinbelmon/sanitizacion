@@ -18,6 +18,7 @@ Lo escribe `/dsc-log`. Los IDs se reservan desde `registry/ids.yaml`.
 | DEC-007 | Los contadores de ID pasan de `products` a `proyectos`, con migración | Técnica | ACTIVE | 2026-08-14 |
 | DEC-008 | Las dependencias entre épicas se declaran en una columna de la tabla del roadmap | Producto | ACTIVE | 2026-08-28 |
 | DEC-009 | `started_at` se persiste en el estado, no solo como evento | Proceso | ACTIVE | 2026-08-28 |
+| DEC-010 | Saneamiento determinista de Unicode invisible y ANSI en `ideas/` | Técnica | ACTIVE | 2026-09-15 |
 
 ---
 
@@ -691,3 +692,85 @@ Ninguno sobre lo existente. El audit devuelve los mismos 0 errores y 14 avisos �
 emite nada sobre `proyecto-1`, que no tiene `started_at` en ninguna etapa— y el smoke pasa los
 dieciocho pasos. En `proyecto-1` la cronología muestra las fechas de aprobación que ya existían y
 deja el inicio vacío, sin inventarlo.
+
+## DEC-010
+
+**Fecha:** 2026-09-15
+**Tipo:** Técnica
+**Estado:** ACTIVE
+**Responsable:** Kevin Belmonte (Proguide)
+**Proyecto:** global
+**command_origin:** agregado de saneamiento Unicode/ANSI (SEC-02/SEC-03, evidencia ISO 42001)
+
+### Título
+
+Saneamiento determinista de Unicode invisible y ANSI en `ideas/`
+
+### Gap o motivo
+
+El Paso 1 de `/dsc-refine` ya le pedía al agente detectar "texto invisible" como parte del check
+de inyección de instrucciones — pero un carácter literalmente invisible en el contexto del LLM es,
+por definición, el caso que un LLM tiene más chances de no ver. Ningún script lo verificaba: el
+único mecanismo determinista existente (`scripts/discovery-audit.mjs`, chequeo de patrones de
+secreto) audita artefactos ya escritos, no el contenido crudo de `ideas/` antes de leerse.
+
+No es un gap nuevo del Discovery Model en particular: es el mismo caso que ya se resolvió del lado
+`sdd-model` (equivalente SEC-02/SEC-03 allí, sobre `drafts/`). `ideas/` es exactamente el mismo tipo
+de input no confiable — sale de mails, minutas y documentos de terceros (constitution.md, sección
+Seguridad) — así que se porta la misma lógica en vez de reinventarla.
+
+### Alternativas consideradas
+
+1. Ampliar el texto del Paso 1 para que el agente preste más atención a caracteres invisibles.
+2. Sumarlo como chequeo 18 de `scripts/discovery-audit.mjs`.
+3. Un script nuevo (`lib/sanitize.mjs` + `scripts/sanitize.mjs`) que corre como paso previo al
+   check de seguridad de `/dsc-refine`, sobre `ideas/` antes de que el agente la lea.
+
+### Por qué se descartaron
+
+La 1 no arregla nada verificable: le pide al LLM que "vea mejor" exactamente lo que por
+construcción no ve — es la misma clase de solución que `constitution.md` ya rechaza para todo lo
+determinista.
+
+La 2 audita en el momento equivocado. `discovery-audit.mjs` corre sobre artefactos ya escritos
+(`iniciativa.md`, `visión.md`, etc.), no sobre `ideas/` antes de que el agente la procese. Para
+cuando el chequeo 18 corriera, el agente ya habría leído el contenido crudo.
+
+### Decisión tomada
+
+1. **`lib/sanitize.mjs`** — `sanearUnicode()`, `sanearAnsi()`, `sanear()`. Remueve bidi
+   override/isolate, zero-width, variation selectors, tag characters y control C0/C1 (salvo
+   `\t\n\r`); remueve secuencias de escape ANSI (CSI/OSC). Cero dependencias, igual que el resto
+   del modelo. El orden importa y queda documentado en el propio módulo: ANSI corre antes que
+   Unicode, porque una secuencia ANSI empieza con un byte de control (ESC/BEL) que el paso de
+   Unicode también removería, dejando el resto de la secuencia como texto visible en vez de
+   neutralizarla.
+2. **`scripts/sanitize.mjs`** — CLI. `<slug> [--write] [--json]` sobre `proyectos/<slug>/ideas/`,
+   `--path <ruta>` para una ruta explícita, o `-` para filtrar por stdin sin tocar disco.
+3. **`/dsc-refine` corre `node scripts/sanitize.mjs <slug> --write` como Paso 1a**, antes del check
+   de inyección/secretos existente. No lo reemplaza — ese sigue siendo juicio del agente, ahora
+   sobre texto ya limpio.
+4. **`constitution.md`** suma un MUST explícito junto al de input no confiable, así el saneamiento
+   determinista queda como principio no negociable y no solo como detalle de implementación de un
+   comando.
+
+### Motivo
+
+Determinismo sobre juicio del LLM para todo lo mecánicamente verificable es el pilar #7 del
+modelo (`scripts/discovery-audit.mjs`, `CLAUDE.md` sección Determinismo). Un carácter invisible es
+el caso de libro de texto de esa regla: pedirle al agente que lo note es exactamente la clase de
+"confiar en que el LLM se dé cuenta" que el modelo evita en todo lo demás.
+
+### Artefactos modificados
+
+`lib/sanitize.mjs` (nuevo), `scripts/sanitize.mjs` (nuevo), `.claude/commands/dsc-refine.md`,
+`constitution.md`.
+
+### Impacto en la cadena
+
+Ninguno sobre lo existente. `node scripts/discovery-audit.mjs` sigue en 17 chequeos, 0 errores, 0
+avisos (repo sin proyectos reales committeados). `npm test` (`scripts/smoke.mjs`) sigue pasando
+los dieciocho pasos sin cambios — el saneamiento no está enganchado a ningún chequeo determinista
+todavía, es un paso previo de `/dsc-refine`, así que no hay caso nuevo que agregar al smoke sin
+antes decidir si merece su propio chequeo en `discovery-audit.mjs` (quedó fuera de alcance de esta
+decisión: ver "Alternativas consideradas", opción 2).

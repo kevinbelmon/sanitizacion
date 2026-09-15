@@ -1,1 +1,15 @@
-proyectos: []
+proyectos:
+  - id: PRY-005
+    slug: alejandria
+    nombre: Alejandria
+    cliente: interna
+    status: DISCOVERY
+    created: 2026-09-10
+    owner: PM
+  - id: PRY-006
+    slug: prueba-saneamiento
+    nombre: Prueba Saneamiento
+    cliente: interna
+    status: DISCOVERY
+    created: 2026-09-15
+    owner: Kevin Belmonte
